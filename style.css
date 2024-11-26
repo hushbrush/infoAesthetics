@@ -1,45 +1,51 @@
-
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-
-
 body {
     font-size: 16px;
     font-family: Arial, sans-serif;
-    color: #403D39;
-
+    background-color: #000000;
 }
-
 
 section {
     width: 1920px;
     height: 1080px;
     padding: 20px;
     margin-bottom: 20px;
-    
 }
 
-h1{
-    font-size: 36px;
+h1 {
+    font-size: 150px;
     margin-bottom: 10px;
-    text-align: center;
+    margin-left: 10px;
+    text-align: left;
+    font-family: "fractul-variable",sans-serif;
+    font-variation-settings: 'wght' 700;
+    font-style: semi-bold;
+    color: #ffd900;
+    
+        
+      
 }
+
 h2 {
+    font-family: "fractul-variable", sans-serif;
+    font-weight: 200;
+    font-style: italic;
     font-size: 24px;
     margin-bottom: 10px;
+    margin-left: 10px;
+    text-align: left;
+    color: #ffd900;
 }
+
 h3 {
     font-size: 18px;
     margin-bottom: 10px;
     font-family: Arial, Helvetica, sans-serif;
+    color: #ffd900;
 }
+
 .tooltip {
     font-family: Arial, sans-serif;
     font-size: 12px;
     line-height: 1.5;
     box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.3);
 }
-

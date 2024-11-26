@@ -7,7 +7,7 @@ import Sentiment from "https://cdn.skypack.dev/sentiment";
 const sentiment = new Sentiment();
 
 
-let colours = { primary: "#F77564", secondary: "#B69DE7", tertiary: "#403d39", quaternary: "#FFFFFF", quinary: "#8A3B76", text: "#000000", tooltipText: "#FFFFFF", background: "#403D39", stroke: "#FFFFFF" };
+let colours = { primary: "#ffd900", secondary: "#F77564", tertiary: "#403d39", quaternary: "#FFFFFF", quinary: "#8A3B76", text: "#FFFFFF", tooltipText: "#FFFFFF", background: "#403D39", stroke: "#FFFFFF" };
 
 // Function to calculate sentiment
 function calculateSentiment(str) {
@@ -36,8 +36,8 @@ async function getData() {
 getData().then(data => {
    // preWordTree(data);
     preqvq(data);
-    // presun(data);
-    // prechart3(data);
+    presun(data);
+    prechart3(data);
 
     
 });
