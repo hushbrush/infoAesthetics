@@ -6,6 +6,9 @@ import Sentiment from "https://cdn.skypack.dev/sentiment";
 
 const sentiment = new Sentiment();
 
+
+let colours = { primary: "#F77564", secondary: "#B69DE7", tertiary: "#403d39", quaternary: "#FFFFFF", quinary: "#8A3B76", text: "#000000", tooltipText: "#FFFFFF", background: "#403D39", stroke: "#FFFFFF" };
+
 // Function to calculate sentiment
 function calculateSentiment(str) {
     const result = sentiment.analyze(str); // Use the instance to call 'analyze'
@@ -31,10 +34,10 @@ async function getData() {
 
 
 getData().then(data => {
-    preWordTree(data);
+   // preWordTree(data);
     preqvq(data);
-    presun(data);
-    prechart3(data);
+    // presun(data);
+    // prechart3(data);
 
     
 });
@@ -230,7 +233,7 @@ function createBarChart(data) {
             .attr("y", d => y(d.recommended))
             .attr("width", x.bandwidth())
             .attr("height", d => y(0) - y(d.recommended)) // Height from 0 to positive value
-            .attr("fill", "green");
+            .attr("fill", colours.primary);
 
         // Add not-recommended bars (negative, below x-axis)
         barGroups.append("rect")
@@ -239,7 +242,7 @@ function createBarChart(data) {
             .attr("y", d => y(0)) // Start at x-axis (y=0)
             .attr("width", x.bandwidth())
             .attr("height", d => y(-d.notRecommended) - y(0)) // Height from 0 to negative value
-            .attr("fill", "red");
+            .attr("fill", colours.secondary);
 
         // Update existing bars
         bars.select(".bar.recommended")
@@ -376,7 +379,7 @@ function drawWordTree(data, fullData) {
         .attr("y1", d => d.source.x)
         .attr("x2", d => d.target.y)
         .attr("y2", d => d.target.x)
-        .attr("stroke", "#999");
+        .attr("stroke", colours.quinary);
 
     // Create nodes
     const nodes = svg.selectAll(".node")
@@ -388,7 +391,7 @@ function drawWordTree(data, fullData) {
 
     nodes.append("circle")
         .attr("r", 5)
-        .attr("fill", "#69b3a2")
+        .attr("fill", colours.primary)
         .on("click", (event, d) => expandNode(d, fullData));
 
     nodes.append("text")
@@ -451,9 +454,10 @@ function drawSunburst(data) {
     const width = 928;
     const height = width;
     const radius = width / 6;
-
     // Create the color scale.
-    const color = d3.scaleOrdinal(d3.quantize(d3.interpolateRainbow, data.children.length + 1));
+    const color = d3.scaleOrdinal()
+        .domain(data.children.map(d => d.name))
+        .range(Object.values(colours));
 
     // Compute the layout.
     const hierarchy = d3.hierarchy(data)
@@ -601,7 +605,7 @@ function create_heatmap(data) {
     const svgContainer = d3.select("#chart2svg");
     const color = d3.scaleSequential()
         .domain([0, 2000, 4000, 8000]) // Set the domain for counts
-        .range(["yellow", "purple"]);
+        .range([colours.secondary, colours.primary ]);
 
     let currentView = "macro"; // Default view
 

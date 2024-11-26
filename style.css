@@ -1,14 +1,16 @@
-/* Reset default styles */
+
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
 }
 
-/* Set a base font size and family */
+
 body {
     font-size: 16px;
     font-family: Arial, sans-serif;
+    color: #403D39;
+
 }
 
 
@@ -17,7 +19,7 @@ section {
     height: 1080px;
     padding: 20px;
     margin-bottom: 20px;
-    background-color: #f0f0f0;
+    
 }
 
 h1{
