@@ -1,7 +1,7 @@
 body {
     font-size: 16px;
     font-family: Arial, sans-serif;
-    background-color: #000000;
+    background-color: #262626;
 }
 
 section {
@@ -12,14 +12,15 @@ section {
 }
 
 h1 {
-    font-size: 150px;
+    font-size: 100px;
     margin-bottom: 10px;
     margin-left: 10px;
     text-align: left;
     font-family: "fractul-variable",sans-serif;
     font-variation-settings: 'wght' 700;
     font-style: semi-bold;
-    color: #ffd900;
+    color: #ffed85;
+ 
     
         
       
@@ -33,14 +34,14 @@ h2 {
     margin-bottom: 10px;
     margin-left: 10px;
     text-align: left;
-    color: #ffd900;
+    color: #fb6d51;
 }
 
 h3 {
     font-size: 18px;
     margin-bottom: 10px;
     font-family: Arial, Helvetica, sans-serif;
-    color: #ffd900;
+    color: #fb6d51;
 }
 
 .tooltip {
@@ -48,4 +49,39 @@ h3 {
     font-size: 12px;
     line-height: 1.5;
     box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.3);
+}
+
+#toggleView {
+    position: relative;
+    width: 60px;
+    height: 30px;
+    background-color: #ccc;
+    border-radius: 15px;
+    cursor: pointer;
+}
+
+#toggleView:before {
+    content: "";
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 26px;
+    height: 26px;
+    background-color: #fff;
+    border-radius: 50%;
+    transition: transform 0.3s ease;
+}
+
+#toggleView:checked:before {
+    transform: translateX(30px);
+    animation: moveBackAndForth 0.6s ease-in-out infinite alternate;
+}
+
+@keyframes moveBackAndForth {
+    0% {
+        transform: translateX(0);
+    }
+    100% {
+        transform: translateX(100px);
+    }
 }

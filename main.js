@@ -7,7 +7,7 @@ import Sentiment from "https://cdn.skypack.dev/sentiment";
 const sentiment = new Sentiment();
 
 
-let colours = { primary: "#ffd900", secondary: "#F77564", tertiary: "#403d39", quaternary: "#FFFFFF", quinary: "#8A3B76", text: "#FFFFFF", tooltipText: "#FFFFFF", background: "#403D39", stroke: "#FFFFFF" };
+let colours = { primary: "#ffed85", secondary: "#fb6d51", tertiary: "#403d39", quaternary: "#FFFFFF", quinary: "#8A3B76", text: "#FFFFFF", tooltipText: "#FFFFFF", background: "#403D39", stroke: "#FFFFFF" };
 
 // Function to calculate sentiment
 function calculateSentiment(str) {
@@ -598,14 +598,14 @@ function drawSunburst(data) {
 function create_heatmap(data) {
     console.log(data);
 
-    const width = 1920;
-    const height = 1080;
+    const width = 1500;
+    const height = 1000;
     const margin = { top: 50, right: 20, bottom: 50, left: 150 };
 
     const svgContainer = d3.select("#chart2svg");
     const color = d3.scaleSequential()
-        .domain([0, 2000, 4000, 8000]) // Set the domain for counts
-        .range([colours.secondary, colours.primary ]);
+        .domain([0, 8000]) // Set the domain for counts
+        .interpolator(d3.interpolate(colours.primary, colours.secondary));
 
     let currentView = "macro"; // Default view
 
@@ -648,7 +648,7 @@ function create_heatmap(data) {
             }
         } else {
             // MICRO VIEW: Group adjectives by sentiment bins
-            const sentimentBins = d3.range(-5, 6); // Sentiment bins -5 to +5
+            const sentimentBins = d3.range(-3, 6); // Sentiment bins -5 to +5
 
             // Group adjectives into bins
             const binnedData = d3.rollup(
@@ -692,7 +692,7 @@ function create_heatmap(data) {
             .on("mouseover", function (event, d) {
                 if (view === "macro") {
                     tooltip.transition().duration(200).style("opacity", 1);
-                    tooltip.html(`<strong>${d.adjective}</strong>`)
+                    tooltip.html(`<strong>${"Word:"+d.adjective+", Sentiment Score: "+d.sentiment_score+", Rating:"+d.rating}</strong>`)
                         .style("left", (event.pageX + 10) + "px")
                         .style("top", (event.pageY - 10) + "px");
                 }
@@ -710,14 +710,16 @@ function create_heatmap(data) {
             .attr("transform", `translate(0,${margin.top})`)
             .call(d3.axisTop(x).ticks(5))
             .selectAll("text")
-            .style("font-size", "12px");
+            .style("font-size", "12px")
+            .style("color", colours.text);
 
         // Add Y-axis
         svgContainer.append("g")
             .attr("transform", `translate(${margin.left},0)`)
             .call(d3.axisLeft(y))
             .selectAll("text")
-            .style("font-size", "12px");
+            .style("font-size", "4px")
+            .style("color", colours.text);
     }
 
     // Initialize with macro view
