@@ -1,0 +1,43 @@
+/* Reset default styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* Set a base font size and family */
+body {
+    font-size: 16px;
+    font-family: Arial, sans-serif;
+}
+
+
+section {
+    width: 1920px;
+    height: 1080px;
+    padding: 20px;
+    margin-bottom: 20px;
+    background-color: #f0f0f0;
+}
+
+h1{
+    font-size: 36px;
+    margin-bottom: 10px;
+    text-align: center;
+}
+h2 {
+    font-size: 24px;
+    margin-bottom: 10px;
+}
+h3 {
+    font-size: 18px;
+    margin-bottom: 10px;
+    font-family: Arial, Helvetica, sans-serif;
+}
+.tooltip {
+    font-family: Arial, sans-serif;
+    font-size: 12px;
+    line-height: 1.5;
+    box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.3);
+}
+

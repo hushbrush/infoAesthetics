@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+      <!-- Include D3.js -->
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sentiment@5.0.1/build/sentiment.min.js"></script>
+    
+  <script type="module" src="main.js"></script>
+    <title>fpia</title>
+    
+  </head>
+
+  <body>
+    <h1>Fashion Reviewed</h1>
+    <h3>Insights from Women's Clothing Reviews on an e-commerce website.</h3>
+    
+    <section id="chart1" style="overflow: auto;">
+      <h2>Explore the flow of words by selecting the first word, and then clicking on the nodes</h2>
+      <svg id="chart1svg" width="1800" height="1080"></svg>
+      <div>
+        <label for="dropdown">Select starting word: </label>
+        <select id="dropdown"></select>
+      </div>
+    </section>
+
+    <section id="">
+      <h2>Chart 2</h2>
+      <button id="toggleView">Toggle View</button>
+      <svg id="chart2svg" width="1920" height="1080"></svg>
+  </section>
+  
+
+    <section id="chart3">
+      <h2>Chart 3</h2>
+      <div id="chart3svg0"></div>
+      <div id="ageSlider">AGE:
+        <input type="range" min="0" max="100" value="50" id="ageRange">
+        <span id="ageValue">50</span>
+      </div>
+      <div id="chart3svg1"></div>
+    </section>
+
+    <section id="chart4">
+      <h2>Chart 4</h2>
+      <svg  id="chart4svg" ></svg>
+    </section>
+    <h1>Reviews of women's clothing, Myntra.com</h1>
+    <h3>Final Project, Info Aesthetics, Fall 2024</h3>
+  </body>
+  
+</html>
