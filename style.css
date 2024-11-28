@@ -18,7 +18,7 @@ h1 {
     text-align: left;
     font-family: "fractul-variable",sans-serif;
     font-variation-settings: 'wght' 700;
-    font-style: semi-bold;
+    font-style: bold;
     color: #ffed85;
  
     
@@ -28,8 +28,8 @@ h1 {
 
 h2 {
     font-family: "fractul-variable", sans-serif;
-    font-weight: 200;
-    font-style: italic;
+    font-weight: 400;
+    font-style: semi-bold;
     font-size: 24px;
     margin-bottom: 10px;
     margin-left: 10px;
@@ -49,6 +49,12 @@ h3 {
     font-size: 12px;
     line-height: 1.5;
     box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.3);
+}
+
+#chart4svg{
+    margin: 0 auto;
+    display: flex;
+    justify-content: center;
 }
 
 #toggleView {
@@ -71,7 +77,8 @@ h3 {
     border-radius: 50%;
     transition: transform 0.3s ease;
 }
-
+/* HARSHITA FIX THIS TOGGLE BUTTON DESIGN AND ANIMATION */
+/* HARSHITA ADD THE TEXT ON EITHER SIDE OF THE TOGGLE BUTTON, */
 #toggleView:checked:before {
     transform: translateX(30px);
     animation: moveBackAndForth 0.6s ease-in-out infinite alternate;

@@ -7,7 +7,7 @@ import Sentiment from "https://cdn.skypack.dev/sentiment";
 const sentiment = new Sentiment();
 
 
-let colours = { primary: "#ffed85", secondary: "#fb6d51", tertiary: "#403d39", quaternary: "#FFFFFF", quinary: "#8A3B76", text: "#FFFFFF", tooltipText: "#FFFFFF", background: "#403D39", stroke: "#FFFFFF" };
+let colours = { primary: "#ffed85", secondary: "#fb6d51", tertiary: "#b1fc03", quaternary: "#FFFFFF", quinary: "#8A3B76", text: "#FFFFFF", tooltipText: "#FFFFFF", background: "#403D39", stroke: "#FFFFFF" };
 
 // Function to calculate sentiment
 function calculateSentiment(str) {
@@ -17,12 +17,6 @@ function calculateSentiment(str) {
 
     return score;
 }
-
-
-
-
-
-
 
 async function getData() {
     const response = await fetch("data/womenDressesReviewsDataset.csv");
@@ -34,10 +28,10 @@ async function getData() {
 
 
 getData().then(data => {
-   // preWordTree(data);
-    preqvq(data);
-    presun(data);
-    prechart3(data);
+    preWordTree(data);
+    // preqvq(data);
+    // presun(data);
+    // prechart3(data);
 
     
 });
@@ -45,7 +39,7 @@ getData().then(data => {
 
 
 
-//for qual vs quant chart I need the ratings, and the sentiment based on the adjectives.
+
 function preqvq(data)
 {
     for (let i = 0; i < data.length; i++) {
@@ -73,63 +67,11 @@ function preqvq(data)
 
 
 
-function presun(data) {
-    
-    
-    // First, use d3.group to group the data by division_name -> department_name -> class_name
-    const nestedData = d3.group(data, d => d.division_name, d => d.department_name, d => d.class_name);
-    
-    // Now, we need to create the hierarchical structure for the sunburst chart
-    const sunburstData = {
-        name: "flare", // Root name
-        children: [] // The top-level children array
-    };
-
-    // Loop through each division, department, and class to create the tree structure
-    nestedData.forEach((departmentGroups, divisionName) => {
-        const divisionNode = {
-            name: divisionName,
-            children: [] // Array to hold departments
-        };
-
-        departmentGroups.forEach((classGroups, departmentName) => {
-            const departmentNode = {
-                name: departmentName,
-                children: [] // Array to hold classes
-            };
-
-            classGroups.forEach((reviews, className) => {
-                const classNode = {
-                    name: className,
-                    children: [] // Array to hold reviews
-                };
-
-                // For each review, add a child node
-                reviews.forEach(review => {
-                    classNode.children.push({ name: review.review_text });
-                });
-
-                // Push the class node into the department's children
-                departmentNode.children.push(classNode);
-            });
-
-            // Push the department node into the division's children
-            divisionNode.children.push(departmentNode);
-        });
-
-        // Push the division node into the sunburst data's children
-        sunburstData.children.push(divisionNode);
-    });
-
-    // console.log(sunburstData);
-    drawSunburst(sunburstData);
-}
 
 
 
 
 
-//to create chart 4 I need the count of all grouped class_names which are recommended and not recommended, so that is first group by recommended, then group by class. also need the age of each 
 function prechart3(data)
 {
     
@@ -149,9 +91,15 @@ function prechart3(data)
 
 }
 
+//this needds to be 2 different charts. 
+//Process the data the same, then call 2 different chart maker functions.
+//the second one will have to be edited to act as if negative.
+//make the y axis constant
+//make the slider in between both.
+//design this text better.
 function createBarChart(data) {
     const width = 800;
-    const height = 600;
+    const height = 1000;
     const margin = { top: 20, right: 20, bottom: 50, left: 50 };
 
     const svg = d3.select("#chart3")
@@ -347,10 +295,12 @@ function buildAndDrawWordTree(data, keyword) {
     // Redraw the word tree
     drawWordTree(root, data);
 }
+//solve for the words being so many.
+//if there are a lot of words in close quarters, make it visible only on hovering?
 
 function drawWordTree(data, fullData) {
-    const width = 1920;
-    const height = 1080;
+    const width = 1500;
+    const height = 1300;
     const margin = { top: 20, right: 120, bottom: 20, left: 120 };
 
     const treeLayout = d3.tree().size([height, width - 200]);
@@ -379,7 +329,7 @@ function drawWordTree(data, fullData) {
         .attr("y1", d => d.source.x)
         .attr("x2", d => d.target.y)
         .attr("y2", d => d.target.x)
-        .attr("stroke", colours.quinary);
+        .attr("stroke", colours.stroke);
 
     // Create nodes
     const nodes = svg.selectAll(".node")
@@ -402,42 +352,45 @@ function drawWordTree(data, fullData) {
 }
 
 function expandNode(node, fullData) {
+    //I exchanged the if and else--check once I land.
     if (node.children && node.children.length > 0) {
+         // Lazy-load children
+         const keyword = node.data.name;
+         const newChildren = [];
+         const maxNewNodes = 6;
+ 
+         fullData.forEach(review => {
+             const sentences = RiTa.sentences(review.review_text);
+             sentences.forEach(sentence => {
+                 const words = RiTa.tokenize(sentence.toLowerCase());
+                 const index = words.indexOf(keyword.toLowerCase());
+                 if (index !== -1) {
+                     let currentNode = { name: keyword, children: [] };
+                     let wordCounter = 0;
+ 
+                     // Add up to 10 new nodes (or until the end of the sentence)
+                     for (let i = index + 1; i < words.length && wordCounter < maxNewNodes; i++) {
+                         const word = words[i];
+                         let childNode = currentNode.children.find(d => d.name === word);
+                         if (!childNode) {
+                             childNode = { name: word, children: [] };
+                             currentNode.children.push(childNode);
+                             wordCounter++; // Track added nodes
+                         }
+                         currentNode = childNode;
+                     }
+ 
+                     newChildren.push(...currentNode.children);
+                 }
+             });
+         });
+ 
+         node.children = newChildren;
+        
+    } else {
         // Already expanded, collapse it
         node.children = [];
-    } else {
-        // Lazy-load children
-        const keyword = node.data.name;
-        const newChildren = [];
-        const maxNewNodes = 10;
-
-        fullData.forEach(review => {
-            const sentences = RiTa.sentences(review.review_text);
-            sentences.forEach(sentence => {
-                const words = RiTa.tokenize(sentence.toLowerCase());
-                const index = words.indexOf(keyword.toLowerCase());
-                if (index !== -1) {
-                    let currentNode = { name: keyword, children: [] };
-                    let wordCounter = 0;
-
-                    // Add up to 10 new nodes (or until the end of the sentence)
-                    for (let i = index + 1; i < words.length && wordCounter < maxNewNodes; i++) {
-                        const word = words[i];
-                        let childNode = currentNode.children.find(d => d.name === word);
-                        if (!childNode) {
-                            childNode = { name: word, children: [] };
-                            currentNode.children.push(childNode);
-                            wordCounter++; // Track added nodes
-                        }
-                        currentNode = childNode;
-                    }
-
-                    newChildren.push(...currentNode.children);
-                }
-            });
-        });
-
-        node.children = newChildren;
+       
     }
 
     // Redraw tree with updated data
@@ -450,8 +403,63 @@ function expandNode(node, fullData) {
 
 
 
+//fix the colours.
+
+function presun(data) {
+    
+    
+    // First, use d3.group to group the data by division_name -> department_name -> class_name
+    const nestedData = d3.group(data, d => d.division_name, d => d.department_name, d => d.class_name);
+    
+    // Now, we need to create the hierarchical structure for the sunburst chart
+    const sunburstData = {
+        name: "flare", // Root name
+        children: [] // The top-level children array
+    };
+
+    // Loop through each division, department, and class to create the tree structure
+    nestedData.forEach((departmentGroups, divisionName) => {
+        const divisionNode = {
+            name: divisionName,
+            children: [] // Array to hold departments
+        };
+
+        departmentGroups.forEach((classGroups, departmentName) => {
+            const departmentNode = {
+                name: departmentName,
+                children: [] // Array to hold classes
+            };
+
+            classGroups.forEach((reviews, className) => {
+                const classNode = {
+                    name: className,
+                    children: [] // Array to hold reviews
+                };
+
+                // For each review, add a child node
+                reviews.forEach(review => {
+                    classNode.children.push({ name: review.review_text });
+                });
+
+                // Push the class node into the department's children
+                departmentNode.children.push(classNode);
+            });
+
+            // Push the department node into the division's children
+            divisionNode.children.push(departmentNode);
+        });
+
+        // Push the division node into the sunburst data's children
+        sunburstData.children.push(divisionNode);
+    });
+
+    // console.log(sunburstData);
+    drawSunburst(sunburstData);
+}
+
 function drawSunburst(data) {
-    const width = 928;
+    
+    const width = 1000;
     const height = width;
     const radius = width / 6;
     // Create the color scale.
@@ -461,8 +469,9 @@ function drawSunburst(data) {
 
     // Compute the layout.
     const hierarchy = d3.hierarchy(data)
-        .sum(d => d.children ? d.children.length : 1) // Use number of children as value
-        .sort((a, b) => b.value - a.value);
+        .sum(d =>  d.children ? d.children.length: 360) // Use number of children as value
+        .sort((a, b) => b.value - a.value)
+        
 
     const root = d3.partition()
         .size([2 * Math.PI, hierarchy.height + 1])(hierarchy);
@@ -478,10 +487,13 @@ function drawSunburst(data) {
         .outerRadius(d => Math.max(d.y0 * radius, d.y1 * radius - 1));
 
     // Create the SVG container.
-    const svg = d3.select("body") // Change to a specific container like "#chart" if needed
+    const svg = d3.select("#chart4svg")
         .append("svg")
+        .attr("width", width)
+        .attr("height", height)
         .attr("viewBox", [-width / 2, -height / 2, width, width])
         .style("font", "10px sans-serif");
+    console.log("IN")
 
     // Create a tooltip div (hidden by default).
     const tooltip = d3.select("body")
@@ -493,7 +505,9 @@ function drawSunburst(data) {
         .style("padding", "8px")
         .style("border-radius", "4px")
         .style("pointer-events", "none")
-        .style("display", "none");
+        .style("display", "none")
+        .style("width", "400px") // Set fixed width for tooltip
+        .style("word-wrap", "break-word"); // Enable word wrap
 
     // Append the arcs.
     const path = svg.append("g")
@@ -513,7 +527,21 @@ function drawSunburst(data) {
         })
         .on("mousemove", event => {
             tooltip.style("top", (event.pageY + 10) + "px")
-                .style("left", (event.pageX + 10) + "px");
+                .style("left", (event.pageX + 10) + "px")
+                .style("height", "auto"); // Reset height to auto
+
+            const tooltipWidth = parseInt(tooltip.style("width")); // Get tooltip width
+            const tooltipHeight = parseInt(tooltip.style("height")); // Get tooltip height
+
+            // Check if the tooltip exceeds the window width
+            if (event.pageX + tooltipWidth > window.innerWidth) {
+                tooltip.style("left", (event.pageX - tooltipWidth - 10) + "px");
+            }
+
+            // Check if the tooltip exceeds the window height
+            if (event.pageY + tooltipHeight > window.innerHeight) {
+                tooltip.style("top", (event.pageY - tooltipHeight - 10) + "px");
+            }
         })
         .on("mouseout", () => {
             tooltip.style("display", "none");
@@ -594,7 +622,8 @@ function drawSunburst(data) {
 
 
 
-
+//the y axis needs to be ticking the sentiment scores. 
+//the sentiment score should be in the tooltip
 function create_heatmap(data) {
     console.log(data);
 
@@ -631,6 +660,9 @@ function create_heatmap(data) {
             yDomain = Array.from(new Set(data))
                 .sort((a, b) => a.sentiment_score - b.sentiment_score)
                 .map(d => d.adjective);
+
+            console.log("HIHIHI")
+            console.log(yDomain)
 
             // Aggregate data as in original function
             const aggregatedData = d3.rollup(
@@ -710,15 +742,18 @@ function create_heatmap(data) {
             .attr("transform", `translate(0,${margin.top})`)
             .call(d3.axisTop(x).ticks(5))
             .selectAll("text")
-            .style("font-size", "12px")
-            .style("color", colours.text);
+            .style("font-size", "16px")
+            .style("color", colours.text)
+            .style("text-anchor", "middle")
+            .style("font-family", "fractul-variable")
+            .style("font-weight", "400");
 
         // Add Y-axis
         svgContainer.append("g")
             .attr("transform", `translate(${margin.left},0)`)
             .call(d3.axisLeft(y))
             .selectAll("text")
-            .style("font-size", "4px")
+            .style("font-size", "16px")
             .style("color", colours.text);
     }
 
