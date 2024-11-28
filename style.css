@@ -7,7 +7,6 @@ body {
 section {
     width: 1920px;
     height: 1080px;
-    padding: 20px;
     margin-bottom: 20px;
 }
 
@@ -19,11 +18,7 @@ h1 {
     font-family: "fractul-variable",sans-serif;
     font-variation-settings: 'wght' 700;
     font-style: bold;
-    color: #ffed85;
- 
-    
-        
-      
+    color: #ffed85;   
 }
 
 h2 {
@@ -40,8 +35,17 @@ h2 {
 h3 {
     font-size: 18px;
     margin-bottom: 10px;
-    font-family: Arial, Helvetica, sans-serif;
+    margin-left: 10px;
+    font-family: "open-sans", sans-serif;
     color: #fb6d51;
+}
+h4 {
+    margin-bottom: 10px;
+    margin-left: 10px;
+    font-family: "open-sans", sans-serif;
+    font-weight: 400;
+    font-style: normal;
+    color: #fff
 }
 
 .tooltip {

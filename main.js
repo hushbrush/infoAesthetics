@@ -7,7 +7,7 @@ import Sentiment from "https://cdn.skypack.dev/sentiment";
 const sentiment = new Sentiment();
 
 
-let colours = { primary: "#ffed85", secondary: "#fb6d51", tertiary: "#b1fc03", quaternary: "#FFFFFF", quinary: "#8A3B76", text: "#FFFFFF", tooltipText: "#FFFFFF", background: "#403D39", stroke: "#FFFFFF" };
+let colours = { primary: "#ffed85", secondary: "#fb6d51", tertiary: "#a3f59d", quaternary: "#FFFFFF", quinary: "#8A3B76", text: "#FFFFFF", tooltipText: "#FFFFFF", background: "#403D39", stroke: "#FFFFFF" };
 
 // Function to calculate sentiment
 function calculateSentiment(str) {
@@ -29,9 +29,9 @@ async function getData() {
 
 getData().then(data => {
     preWordTree(data);
-    // preqvq(data);
-    // presun(data);
-    // prechart3(data);
+    preqvq(data);
+    presun(data);
+    prechart3(data);
 
     
 });
@@ -226,13 +226,35 @@ function createBarChart(data) {
 
 
 
-
 function preWordTree(data) {
+    // Calculate divisiveness score for each review
+    const scoredData = data.map(review => {
+        const sentences = RiTa.sentences(review.review_text);
+        const uniqueFirstWords = new Set();
+
+        sentences.forEach(sentence => {
+            const firstWord = RiTa.tokenize(sentence.toLowerCase())[0];
+            if (firstWord) {
+                uniqueFirstWords.add(firstWord);
+            }
+        });
+
+        // Divisiveness score: number of unique first words divided by total sentences
+        const divisiveness = uniqueFirstWords.size / sentences.length;
+        return { review, divisiveness };
+    });
+
+    // Sort reviews by divisiveness in descending order and select the top 100
+    const limitedData = scoredData
+        .sort((a, b) => b.divisiveness - a.divisiveness)
+        .slice(0, 100)
+        .map(d => d.review);
+
     // Efficiently calculate the 20 most common starting words
     const wordCounts = new Map();
 
     // Process each review
-    data.forEach(review => {
+    limitedData.forEach(review => {
         const sentences = RiTa.sentences(review.review_text);
         sentences.forEach(sentence => {
             const firstWord = RiTa.tokenize(sentence.toLowerCase())[0];
@@ -257,14 +279,15 @@ function preWordTree(data) {
 
     // Build the word tree with the default keyword (first in dropdown)
     let selectedKeyword = topWords[0];
-    buildAndDrawWordTree(data, selectedKeyword);
+    buildAndDrawWordTree(limitedData, selectedKeyword);
 
     // Update the tree when a new keyword is selected
     dropdown.on("change", function () {
         const selectedKeyword = this.value;
-        buildAndDrawWordTree(data, selectedKeyword);
+        buildAndDrawWordTree(limitedData, selectedKeyword);
     });
 }
+
 
 function buildAndDrawWordTree(data, keyword) {
     const root = { name: keyword, children: [] };
@@ -319,6 +342,18 @@ function drawWordTree(data, fullData) {
         .append("g")
         .attr("transform", `translate(${margin.left},${margin.top})`);
 
+    // Create a tooltip div (hidden by default)
+    const tooltip = d3.select("#chart1svg")
+        .append("div")
+        .style("position", "absolute")
+        .style("background", "#fff")
+        .style("border", "1px solid #ccc")
+        .style("padding", "5px")
+        .style("border-radius", "3px")
+        .style("box-shadow", "0 2px 4px rgba(0,0,0,0.1)")
+        .style("pointer-events", "none")
+        .style("opacity", 0);
+
     // Create links between nodes
     svg.selectAll(".link")
         .data(root.links())
@@ -342,60 +377,75 @@ function drawWordTree(data, fullData) {
     nodes.append("circle")
         .attr("r", 5)
         .attr("fill", colours.primary)
+        .on("mouseover", (event, d) => {
+            tooltip
+                .style("opacity", 1)
+                .html(`<strong>${d.data.name}</strong>`) // Tooltip content
+                .style("left", `${event.pageX + 10}px`)
+                .style("top", `${event.pageY + 10}px`);
+        })
+        .on("mouseout", () => {
+            tooltip.style("opacity", 0);
+        })
         .on("click", (event, d) => expandNode(d, fullData));
 
     nodes.append("text")
         .attr("dy", 3)
         .attr("x", d => d.children ? -10 : 10)
         .style("text-anchor", d => d.children ? "end" : "start")
-        .text(d => d.data.name);
+        .text(d => d.data.name)
+        .style("font-size", "12px") // Reduce text size for crowded nodes
+        .style("pointer-events", "none") // Ensure text doesn't block interaction
+        .style("fill", colours.text);
 }
 
+
 function expandNode(node, fullData) {
-    //I exchanged the if and else--check once I land.
-    if (node.children && node.children.length > 0) {
-         // Lazy-load children
-         const keyword = node.data.name;
-         const newChildren = [];
-         const maxNewNodes = 6;
- 
-         fullData.forEach(review => {
-             const sentences = RiTa.sentences(review.review_text);
-             sentences.forEach(sentence => {
-                 const words = RiTa.tokenize(sentence.toLowerCase());
-                 const index = words.indexOf(keyword.toLowerCase());
-                 if (index !== -1) {
-                     let currentNode = { name: keyword, children: [] };
-                     let wordCounter = 0;
- 
-                     // Add up to 10 new nodes (or until the end of the sentence)
-                     for (let i = index + 1; i < words.length && wordCounter < maxNewNodes; i++) {
-                         const word = words[i];
-                         let childNode = currentNode.children.find(d => d.name === word);
-                         if (!childNode) {
-                             childNode = { name: word, children: [] };
-                             currentNode.children.push(childNode);
-                             wordCounter++; // Track added nodes
-                         }
-                         currentNode = childNode;
-                     }
- 
-                     newChildren.push(...currentNode.children);
-                 }
-             });
-         });
- 
-         node.children = newChildren;
-        
+    if (node._children && node._children.length > 0) {
+        // Collapse already expanded nodes
+        node.children = node._children;
+        node._children = null;
     } else {
-        // Already expanded, collapse it
-        node.children = [];
-       
+        // Expand node by adding new children
+        const keyword = node.data.name;
+        const newChildren = [];
+        const maxNewNodes = 6; // Limit to avoid overload
+
+        fullData.forEach(review => {
+            const sentences = RiTa.sentences(review.review_text);
+            sentences.forEach(sentence => {
+                const words = RiTa.tokenize(sentence.toLowerCase());
+                const index = words.indexOf(keyword.toLowerCase());
+                if (index !== -1) {
+                    let currentNode = { name: keyword, children: [] };
+                    let wordCounter = 0;
+
+                    // Add new nodes following the keyword in the sentence
+                    for (let i = index + 1; i < words.length && wordCounter < maxNewNodes; i++) {
+                        const word = words[i];
+                        let childNode = currentNode.children.find(d => d.name === word);
+                        if (!childNode) {
+                            childNode = { name: word, children: [] };
+                            currentNode.children.push(childNode);
+                            wordCounter++;
+                        }
+                        currentNode = childNode;
+                    }
+
+                    newChildren.push(...currentNode.children);
+                }
+            });
+        });
+
+        // Save current children for toggling collapse
+        node._children = newChildren.length > 0 ? newChildren : node.children || [];
+        node.children = node._children;
     }
 
     // Redraw tree with updated data
     drawWordTree(node.data, fullData);
 }
+
 
 
 
@@ -492,8 +542,9 @@ function drawSunburst(data) {
         .attr("width", width)
         .attr("height", height)
         .attr("viewBox", [-width / 2, -height / 2, width, width])
-        .style("font", "10px sans-serif");
-    console.log("IN")
+        .style("font", "14px, sans-serif")
+        .style('color', colours.text);
+  
 
     // Create a tooltip div (hidden by default).
     const tooltip = d3.select("body")
