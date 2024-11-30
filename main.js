@@ -98,13 +98,18 @@ function createBarChart(data) {
     const height = 1000;
     const margin = { top: 20, right: 20, bottom: 50, left: 50 };
 
+    // Create SVG container
     const svg = d3.select("#chart3")
         .append("svg")
         .attr("width", width)
         .attr("height", height);
 
-    const chartGroup = svg.append("g")
+    // Define top and bottom chart groups (update these to only set the transform)
+    const topChartGroup = svg.append("g")
         .attr("transform", `translate(${margin.left}, ${margin.top})`);
+
+    const bottomChartGroup = svg.append("g")
+        .attr("transform", `translate(${margin.left}, ${height / 2 + margin.top})`);
 
     // Define scales
     const x = d3.scaleBand()
@@ -112,11 +117,21 @@ function createBarChart(data) {
         .padding(0.1);
 
     const y = d3.scaleLinear()
-        .range([height - margin.top - margin.bottom, 0]);
+        .range([height / 2 - margin.top - margin.bottom, 0]);  // Adjust for top half
+
+    const y2 = d3.scaleLinear()
+        .range([0, height / 2 - margin.top - margin.bottom]);  // Adjust for bottom half
 
     // Axes groups
-    const xAxisGroup = chartGroup.append("g");
-    const yAxisGroup = chartGroup.append("g");
+    const xAxisGroupTop = topChartGroup.append("g")
+        .attr("transform", `translate(0, ${height / 2 - margin.top - margin.bottom})`); // Place x-axis at the bottom of the top chart
+
+    const yAxisGroupTop = topChartGroup.append("g");
+
+    const xAxisGroupBottom = bottomChartGroup.append("g")
+        .attr("transform", `translate(0, ${height / 2 - margin.top - margin.bottom})`); // Place x-axis at the top of the bottom chart
+
+    const yAxisGroupBottom = bottomChartGroup.append("g");
 
     // Collect all unique class_names for persistent x-axis labels
     const allClassNames = new Set(data.flatMap(dataset => dataset.map(d => d.class_name)));
@@ -144,66 +159,94 @@ function createBarChart(data) {
             recommended: groupedData[className].recommended,
         }));
 
-        // Update scales
+        // Update scales for both top and bottom charts
         x.domain(Array.from(allClassNames));
-        y.domain([0, d3.max(chartData, d => d.recommended + d.notRecommended)]);  // Max value for stacked chart
+        y.domain([0, d3.max(chartData, d => d.recommended)]);  // Top chart uses positive values
+        y2.domain([0, d3.max(chartData, d => d.notRecommended)]);  // Bottom chart uses positive values but below x-axis
 
-        // Update x-axis position and labels
-        xAxisGroup
-            .attr("transform", `translate(0, ${y(0)})`) // Move x-axis to y=0
+        // Update x-axis position and labels for top and bottom
+        xAxisGroupTop
             .call(d3.axisBottom(x))
             .selectAll("text")
-            .style("font-size", "12px");
+            .style("font-size", "12px")
+            .style("fill", colours.text); // Apply colour to text
 
-        // Update y-axis
-        yAxisGroup.call(d3.axisLeft(y));
+        xAxisGroupBottom
+            .call(d3.axisBottom(x))
+            .selectAll("text")
+            .style("font-size", "12px")
+            .style("fill", colours.text); // Apply colour to text
 
-        // Stack the data
-        const stack = d3.stack()
-            .keys(["notRecommended", "recommended"]);
+        // Update y-axis for the top chart
+        yAxisGroupTop
+            .call(d3.axisLeft(y))
+            .selectAll("text")
+            .style("font-size", "12px")
+            .style("fill", colours.text); // Apply colour to text
 
-        const stackedData = stack(chartData);
+        // Update y-axis for the bottom chart, move below x-axis
+        yAxisGroupBottom
+            .call(d3.axisLeft(y2))
+            .selectAll("text")
+            .style("font-size", "12px")
+            .style("fill", colours.text); // Apply colour to text
+        yAxisGroupBottom
+            .attr("transform", `translate(0, ${y2(0)})`) // Move axis below the x-axis
+            .selectAll("path, line")
+            .style("stroke", colours.stroke); // Apply stroke colour to lines
 
-        // Bind data to bars
-        const bars = chartGroup.selectAll(".bar-group")
-            .data(stackedData, d => d.key);
+        // Bind data to bars for both charts
+        const barsTop = topChartGroup.selectAll(".bar-group")
+            .data(chartData, d => d.class_name);
 
-        // Enter new bar groups
-        const barGroups = bars.enter()
+        const barsBottom = bottomChartGroup.selectAll(".bar-group")
+            .data(chartData, d => d.class_name);
+
+        // Enter new bar groups for top chart
+        const barGroupsTop = barsTop.enter()
             .append("g")
             .attr("class", "bar-group");
 
-        // Add stacked bars (both recommended and not-recommended stacked)
-        barGroups.selectAll("rect")
-            .data(d => d) // Get the data for the individual bars
-            .enter()
-            .append("rect")
-            .attr("class", d => `bar ${d.data.class_name}`)
-            .attr("x", d => x(d.data.class_name))
-            .attr("y", d => y(d[1])) // Stack position based on the y scale
+        // Add recommended bars (positive, above x-axis)
+        barGroupsTop.append("rect")
+            .attr("class", "bar recommended")
+            .attr("x", d => x(d.class_name))
+            .attr("y", d => y(d.recommended))
             .attr("width", x.bandwidth())
-            .attr("height", d => y(d[0]) - y(d[1])) // Height is the difference between the stacked values
-            .attr("fill", (data, i) => {
-                if (i === 0) {
-                    return colours.secondary; // Set color to secondary for notRecommended
-                } else if (i === 1) {
-                    return colours.primary; // Set color to primary for recommended
-                } else {
-                    return null; // Set color to null for other elements
-                }
-            });
+            .attr("height", d => y(0) - y(d.recommended)) // Height from 0 to positive value
+            .attr("fill", colours.primary);
 
-        // Update existing bars (if any)
-        bars.selectAll("rect")
-            .data(d => d)
-            .attr("x", d => x(d.data.class_name))
-            .attr("y", d => y(d[1]))
+        // Enter new bar groups for bottom chart
+        const barGroupsBottom = barsBottom.enter()
+            .append("g")
+            .attr("class", "bar-group");
+
+        // Add not-recommended bars (negative, below x-axis)
+        barGroupsBottom.append("rect")
+            .attr("class", "bar not-recommended")
+            .attr("x", d => x(d.class_name))
+            .attr("y", d => y2(0)) // Start at x-axis (y=0)
             .attr("width", x.bandwidth())
-            .attr("height", d => y(d[0]) - y(d[1]))
-            .attr("fill", (d, i) => i === 0 ? colours.secondary : colours.primary); // Ensure colors are set correctly
+            .attr("height", d => y2(d.notRecommended) - y2(0)) // Height from 0 to positive value, but below x-axis
+            .attr("fill", colours.secondary);
 
-        // Remove old bars
-        bars.exit().remove();
+        // Update existing bars for the top chart
+        barsTop.select(".bar.recommended")
+            .attr("x", d => x(d.class_name))
+            .attr("y", d => y(d.recommended))
+            .attr("width", x.bandwidth())
+            .attr("height", d => y(0) - y(d.recommended));
+
+        // Update existing bars for the bottom chart
+        barsBottom.select(".bar.not-recommended")
+            .attr("x", d => x(d.class_name))
+            .attr("y", d => y2(0))
+            .attr("width", x.bandwidth())
+            .attr("height", d => y2(d.notRecommended) - y2(0));
+
+        // Remove old bars for top and bottom charts
+        barsTop.exit().remove();
+        barsBottom.exit().remove();
     }
 
     // Attach slider event
@@ -217,6 +260,15 @@ function createBarChart(data) {
     // Initial render
     updateChart(0, +slider.property("value"));
 }
+
+
+
+
+
+
+
+
+
 
 
 
