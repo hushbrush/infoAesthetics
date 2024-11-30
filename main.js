@@ -29,9 +29,9 @@ async function getData() {
 
 getData().then(data => {
     // preWordTree(data);
-    preqvq(data);
+    // preqvq(data);
     // presun(data);
-    // prechart3(data);
+    prechart3(data);
 
     
 });
@@ -92,12 +92,7 @@ function prechart3(data)
 
 }
 
-//this needds to be 2 different charts. 
-//Process the data the same, then call 2 different chart maker functions.
-//the second one will have to be edited to act as if negative.
-//make the y axis constant
-//make the slider in between both.
-//design this text better.
+
 function createBarChart(data) {
     const width = 800;
     const height = 1000;
@@ -151,10 +146,7 @@ function createBarChart(data) {
 
         // Update scales
         x.domain(Array.from(allClassNames));
-        y.domain([
-            -d3.max(chartData, d => d.notRecommended), // Negative domain for not-recommended
-            d3.max(chartData, d => d.recommended),     // Positive domain for recommended
-        ]);
+        y.domain([0, d3.max(chartData, d => d.recommended + d.notRecommended)]);  // Max value for stacked chart
 
         // Update x-axis position and labels
         xAxisGroup
@@ -166,45 +158,49 @@ function createBarChart(data) {
         // Update y-axis
         yAxisGroup.call(d3.axisLeft(y));
 
+        // Stack the data
+        const stack = d3.stack()
+            .keys(["notRecommended", "recommended"]);
+
+        const stackedData = stack(chartData);
+
         // Bind data to bars
         const bars = chartGroup.selectAll(".bar-group")
-            .data(chartData, d => d.class_name);
+            .data(stackedData, d => d.key);
 
         // Enter new bar groups
         const barGroups = bars.enter()
             .append("g")
             .attr("class", "bar-group");
 
-        // Add recommended bars (positive, above x-axis)
-        barGroups.append("rect")
-            .attr("class", "bar recommended")
-            .attr("x", d => x(d.class_name))
-            .attr("y", d => y(d.recommended))
+        // Add stacked bars (both recommended and not-recommended stacked)
+        barGroups.selectAll("rect")
+            .data(d => d) // Get the data for the individual bars
+            .enter()
+            .append("rect")
+            .attr("class", d => `bar ${d.data.class_name}`)
+            .attr("x", d => x(d.data.class_name))
+            .attr("y", d => y(d[1])) // Stack position based on the y scale
             .attr("width", x.bandwidth())
-            .attr("height", d => y(0) - y(d.recommended)) // Height from 0 to positive value
-            .attr("fill", colours.primary);
+            .attr("height", d => y(d[0]) - y(d[1])) // Height is the difference between the stacked values
+            .attr("fill", (data, i) => {
+                if (i === 0) {
+                    return colours.secondary; // Set color to secondary for notRecommended
+                } else if (i === 1) {
+                    return colours.primary; // Set color to primary for recommended
+                } else {
+                    return null; // Set color to null for other elements
+                }
+            });
 
-        // Add not-recommended bars (negative, below x-axis)
-        barGroups.append("rect")
-            .attr("class", "bar not-recommended")
-            .attr("x", d => x(d.class_name))
-            .attr("y", d => y(0)) // Start at x-axis (y=0)
+        // Update existing bars (if any)
+        bars.selectAll("rect")
+            .data(d => d)
+            .attr("x", d => x(d.data.class_name))
+            .attr("y", d => y(d[1]))
             .attr("width", x.bandwidth())
-            .attr("height", d => y(-d.notRecommended) - y(0)) // Height from 0 to negative value
-            .attr("fill", colours.secondary);
-
-        // Update existing bars
-        bars.select(".bar.recommended")
-            .attr("x", d => x(d.class_name))
-            .attr("y", d => y(d.recommended))
-            .attr("width", x.bandwidth())
-            .attr("height", d => y(0) - y(d.recommended));
-
-        bars.select(".bar.not-recommended")
-            .attr("x", d => x(d.class_name))
-            .attr("y", d => y(0))
-            .attr("width", x.bandwidth())
-            .attr("height", d => y(-d.notRecommended) - y(0));
+            .attr("height", d => y(d[0]) - y(d[1]))
+            .attr("fill", (d, i) => i === 0 ? colours.secondary : colours.primary); // Ensure colors are set correctly
 
         // Remove old bars
         bars.exit().remove();
@@ -221,6 +217,8 @@ function createBarChart(data) {
     // Initial render
     updateChart(0, +slider.property("value"));
 }
+
+
 
 
 
@@ -319,8 +317,6 @@ function buildAndDrawWordTree(data, keyword) {
     // Redraw the word tree
     drawWordTree(root, data);
 }
-//solve for the words being so many.
-//if there are a lot of words in close quarters, make it visible only on hovering?
 
 function drawWordTree(data, fullData) {
     const width = 1500;
@@ -454,7 +450,6 @@ function expandNode(node, fullData) {
 
 
 
-//fix the colours.
 
 function presun(data) {
     
@@ -675,9 +670,11 @@ function drawSunburst(data) {
 
 
 
+
+
+
 function create_heatmap(data) {
-    console.log("heatmap")
-    console.log(data);
+    
 
     const width = 1500;
     const height = 1000;
@@ -687,23 +684,22 @@ function create_heatmap(data) {
     const color = d3.scaleSequential()
         .domain([0, 8000]) // Set the domain for counts
         .interpolator(d3.interpolate(colours.primary, colours.secondary));
-    
+
     let currentView = "macro"; // Default view
 
     // Create a tooltip element
     const tooltip = d3.select("body").append("div")
-    .attr("class", "tooltip")
-    .style("position", "absolute")
-    .style("background", "rgba(0, 0, 0, 0.7)")
-    .style("color", "white")
-    .style("padding", "5px 10px")
-    .style("border-radius", "5px")
-    .style("pointer-events", "none")
-    .style("opacity", 0)
-    .style("width", "100px")  // Set the width to 100px
-    .style("word-wrap", "break-word")  // Ensure text wraps inside the box
-    .style("white-space", "normal"); // Allow the text to break into multiple lines
-
+        .attr("class", "tooltip")
+        .style("position", "absolute")
+        .style("background", "rgba(0, 0, 0, 0.7)")
+        .style("color", "white")
+        .style("padding", "5px 10px")
+        .style("border-radius", "5px")
+        .style("pointer-events", "none")
+        .style("opacity", 0)
+        .style("width", "100px")  // Set the width to 100px
+        .style("word-wrap", "break-word")  // Ensure text wraps inside the box
+        .style("white-space", "normal"); // Allow the text to break into multiple lines
 
     function drawChart(view) {
         svgContainer.selectAll("*").remove(); // Clear existing content
@@ -717,8 +713,7 @@ function create_heatmap(data) {
                 .sort((a, b) => a.sentiment_score - b.sentiment_score)
                 .map(d => d.adjective);
 
-            console.log("HIHIHI")
-            console.log(yDomain)
+            
 
             // Aggregate data as in original function
             const aggregatedData = d3.rollup(
@@ -734,9 +729,13 @@ function create_heatmap(data) {
                     flattenedData.push({ rating, adjective, count });
                 }
             }
-        } else {
+        } 
+        
+        else {
+            console.log("we're here")
+            console.log(data)
             // MICRO VIEW: Group adjectives by sentiment bins
-            const sentimentBins = d3.range(-3, 6); // Sentiment bins -5 to +5
+            const sentimentBins = d3.range(-3, 6); // Sentiment bins -3 to +5
 
             // Group adjectives into bins
             const binnedData = d3.rollup(
@@ -781,13 +780,13 @@ function create_heatmap(data) {
                 if (view === "macro") {
                     // Find the original data item associated with the adjective
                     const dataItem = data.find(item => item.adjective === d.adjective);
-            
+
                     // Highlight the hovered word across all ratings
                     svgContainer.selectAll("rect")
                         .transition()
                         .duration(200)
                         .style("opacity", other => (other.adjective === d.adjective ? 1 : 0.1));
-            
+
                     // Show tooltip
                     tooltip.transition().duration(200).style("opacity", 1);
                     tooltip.html(`<strong>${"Word: " + d.adjective + ", Sentiment Score: " + (dataItem ? dataItem.sentiment_score : 'N/A') + ", Rating: " + d.rating}</strong>`)
@@ -795,7 +794,6 @@ function create_heatmap(data) {
                         .style("top", (event.pageY + 50) + "px");
                 }
             })
-            
             .on("mousemove", function (event) {
                 tooltip.style("left", (event.pageX + 10) + "px")
                     .style("top", (event.pageY - 10) + "px");
@@ -813,20 +811,20 @@ function create_heatmap(data) {
                 }
             });
 
-       // Add X-axis
-       svgContainer.append("g")
-    .attr("transform", `translate(0,${margin.top})`)
-    .call(d3.axisTop(x).ticks(5))
-    .selectAll("text")
-    .style("font-size", "14px")
-    .style("stroke", colours.stroke) // Apply stroke to the text
-    .style("text-anchor", "middle")
-    .style("font-family", "fractul-variable")
-    .style("font-weight", "400");
+        // Add X-axis
+        svgContainer.append("g")
+            .attr("transform", `translate(0,${margin.top})`)
+            .call(d3.axisTop(x).ticks(5))
+            .selectAll("text")
+            .style("font-size", "14px")
+            .style("stroke", colours.stroke) // Apply stroke to the text
+            .style("text-anchor", "middle")
+            .style("font-family", "fractul-variable")
+            .style("font-weight", "400");
 
-// Apply stroke to the axis line (path)
-svgContainer.selectAll(".domain")
-    .style("stroke", colours.stroke); // Apply stroke color to the X-axis line
+        // Apply stroke to the axis line (path)
+        svgContainer.selectAll(".domain")
+            .style("stroke", colours.stroke); // Apply stroke color to the X-axis line
 
 
         svgContainer.append("text") // X-axis label
@@ -837,31 +835,29 @@ svgContainer.selectAll(".domain")
             .style("font-family", "open-sans, sans-serif")
             .style("font-weight", "600")
             .style("fill", colours.stroke)
-            .text("Rating");
+            .text("Rating for the review that the adjective was used in.");
 
         // Add Y-axis
         const yAxis = svgContainer.append("g")
             .attr("transform", `translate(${margin.left},0)`);
 
         // Render the Y-axis differently based on the view
-if (view === "macro") {
-    // In macro view, do not render Y-axis ticks
-    yAxis.call(d3.axisLeft(y).tickFormat(() => "")); // Remove all labels
+        if (view === "macro") {
+            // In macro view, do not render Y-axis ticks
+            yAxis.call(d3.axisLeft(y).tickFormat(() => "")); // Remove all labels
 
-    // Apply stroke to the axis line (path), make it thinner or remove it entirely
-    yAxis.selectAll(".domain")
-        .style("stroke", "none") // Remove the stroke completely
-        .style("stroke-width", 0); // Set stroke width to 0 (making it effectively invisible)
+            // Apply stroke to the axis line (path), make it thinner or remove it entirely
+            yAxis.selectAll(".domain")
+                .style("stroke", "none") // Remove the stroke completely
+                .style("stroke-width", 0); // Set stroke width to 0 (making it effectively invisible)
+        } 
+        else {
+            yAxis.call(d3.axisLeft(y));
+            // Apply stroke to the axis line (path)
+            yAxis.selectAll(".domain")
+                .style("stroke", colours.stroke); // Apply stroke color to the Y-axis line
+        }
 
-} 
-else {
-    yAxis.call(d3.axisLeft(y));
-    // Apply stroke to the axis line (path)
-    yAxis.selectAll(".domain")
-        .style("stroke", colours.stroke); // Apply stroke color to the Y-axis line
-}
-
-      
         // Style the axis ticks (if present)
         yAxis.selectAll("text")
             .style("font-size", "16px")
@@ -880,63 +876,134 @@ else {
             .style("font-weight", "600")
             .style("fill", colours.stroke)
             .text(view === "macro" ? "Adjectives (hover over the chart to see the names)" : "");
-   
-            svgContainer.selectAll(".tick line") // For X-axis
+
+        svgContainer.selectAll(".tick line") // For X-axis
             .style("stroke", colours.stroke);
         
         yAxis.selectAll(".tick line") // For Y-axis
             .style("stroke", colours.stroke);
-        
-        }
+    }
 
     // Initialize with macro view
-    drawChart(currentView);
-    createLegend(color);
+    
 
     // Add button listener for toggling views
     d3.select("#toggleView").on("click", () => {
         currentView = currentView === "macro" ? "micro" : "macro";
         drawChart(currentView);
     });
+    drawChart("macro")
+    createLegend(width, color);
 }
 
-function createLegend(colorScale) {
-   
 
-    const legendDomain = colorScale.domain();
+function createLegend(width, color) {
+    // Define the width and height of the legend rectangle
+    const legendWidth = 20;  // Narrow width for the vertical legend
+    const legendHeight = 300; // Adjust height as needed
+    const margin = { top: 20, right: 20, bottom: 50, left: 50 };
+
+    // Create a new container for the legend
+    const legendContainer = d3.select("#legend2"); 
+
+    // Create a gradient for the vertical legend
+    const gradient = legendContainer.append("defs")
+        .append("linearGradient")
+        .attr("id", "legendGradient")
+        .attr("x1", "0%")
+        .attr("y1", "0%")
+        .attr("x2", "0%")
+        .attr("y2", "100%");
+
+    const legendDomain = color.domain();
     gradient.append("stop")
         .attr("offset", "0%")
-        .attr("stop-color", colorScale(legendDomain[0]));
+        .attr("stop-color", color(legendDomain[0]));
     gradient.append("stop")
         .attr("offset", "100%")
-        .attr("stop-color", colorScale(legendDomain[1]));
+        .attr("stop-color", color(legendDomain[1]));
 
-    // Draw the legend bar
+    // Draw the vertical gradient rectangle
     legendContainer.append("rect")
+        .attr("x", width + 30)  // Position it next to your chart
+        .attr("y", margin.top)  // Align with the top of your chart
         .attr("width", legendWidth)
         .attr("height", legendHeight)
         .style("fill", "url(#legendGradient)");
 
-    // Add labels for the legend
+    // Add title to the legend
+    legendContainer.append("text")
+        .attr("x", width + 30 + legendWidth / 2) // Position it in the middle of the legend
+        .attr("y", margin.top - 10) // Adjust the y position as needed
+        .attr("text-anchor", "middle")
+        .style("font-size", "18px")
+        .style("font-weight", "bold")
+        .style("fill", "yellow") // Ensure text color is visible
+        .text("Legend");
+
+    // Create scale for the ticks along the gradient
     const legendScale = d3.scaleLinear()
         .domain(legendDomain)
-        .range([0, legendWidth]);
+        .range([0, legendHeight]);
 
-    const axisBottom = d3.axisBottom(legendScale)
-        .ticks(5)
-        .tickSize(-legendHeight)
-        .tickFormat(d3.format("~s"));
+    // Create ticks for the legend and add labels
+    const ticks = legendScale.ticks(5);  // Adjust number of ticks as needed
+    const tickContainer = legendContainer.append("g");
 
-    legendContainer.append("g")
-        .attr("transform", `translate(0,${legendHeight})`)
-        .call(axisBottom)
-        .selectAll("text")
-        .style("font-size", "14px")
-        .style("font-family", "open-sans, sans-serif")
-        .style("color", colours.text);
+    ticks.forEach((tickValue, i) => {
+        // Add tick lines
+        tickContainer.append("line")
+            .attr("x1", width + 20) // Align with the edge of the gradient
+            .attr("x2", width + 40) // Extend tick lines to the right
+            .attr("y1", legendScale(tickValue))
+            .attr("y2", legendScale(tickValue))
+            .style("stroke", "white")  // Use stroke color for the lines
+            .style("stroke-width", 1);
+
+        // Add tick labels
+        tickContainer.append("text")
+            .attr("x", width + 50) // Position labels to the right of the ticks
+            .attr("y", legendScale(tickValue))
+            .attr("dy", "0.3em")  // Slight vertical alignment adjustment
+            .style("font-size", "12px")
+            .style("font-family", "open-sans, sans-serif")
+            .style("fill", "white") // Ensure text is visible
+            .style("text-anchor", "start")
+            .text(d3.format(".0f")(tickValue));  // Format as integer
+    });
 }
 
 
+
+
+// function createLegend(width, color) {
+//     // Define the width and height of the legend rectangle
+//     const legendWidth = 200;
+//     const legendHeight = 1000;
+//     const margin = { top: 20, right: 20, bottom: 50, left: 50 };
+
+//     // Create a new container for the legend
+//     const legendContainer = d3.select("#legend2"); // Assuming you have an element with the id 'legendContainer'
+
+//     // Draw the white rectangle
+//         legendContainer.append("rect")
+//             .attr("x", width + 20)  // Position it next to your chart
+//             .attr("y", margin.top)  // Align with the top of your chart
+//             .attr("width", legendWidth)
+//             .attr("height", legendHeight)
+            
+//         // Add title to the legend
+//         legendContainer.append("text")
+//             .attr("x", width + 20 + legendWidth / 2) // Position it in the middle of the legend
+//             .attr("y", margin.top + 20) // Adjust the y position as needed
+//             .attr("text-anchor", "middle")
+//             .style("font-size", "18px")
+//             .style("font-weight", "bold")
+//             .style("fill", colours.text)
+//             .text("Legend");
+
+        
+// }
 
 
 
