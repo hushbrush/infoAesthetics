@@ -48,12 +48,15 @@ h4 {
     color: #fff
 }
 
-.tooltip {
-    font-family: Arial, sans-serif;
-    font-size: 12px;
-    line-height: 1.5;
-    box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.3);
+
+
+#toggleContainer span {
+    font-family: "open-sans", sans-serif;
+    font-weight: 400;
+    font-style: normal;
+    color: #fff !important;
 }
+
 
 #chart4svg{
     margin: 0 auto;
@@ -62,15 +65,29 @@ h4 {
 }
 
 #space{
-    margin-top: ;
+    margin-top: 200px;
 }
+#toggleContainer {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+#toggleContainer span {
+    font-size: 14px;
+    color: #333;
+}
+
 #toggleView {
+    appearance: none;
     position: relative;
     width: 60px;
     height: 30px;
     background-color: #ccc;
     border-radius: 15px;
+    outline: none;
     cursor: pointer;
+    transition: background-color 0.3s ease;
 }
 
 #toggleView:before {
@@ -84,18 +101,36 @@ h4 {
     border-radius: 50%;
     transition: transform 0.3s ease;
 }
-/* HARSHITA FIX THIS TOGGLE BUTTON DESIGN AND ANIMATION */
-/* HARSHITA ADD THE TEXT ON EITHER SIDE OF THE TOGGLE BUTTON, */
-#toggleView:checked:before {
-    transform: translateX(30px);
-    animation: moveBackAndForth 0.6s ease-in-out infinite alternate;
+
+#toggleView:checked {
+    background-color: #a3f59d;
 }
 
-@keyframes moveBackAndForth {
-    0% {
-        transform: translateX(0);
-    }
-    100% {
-        transform: translateX(100px);
-    }
+#toggleView:checked:before {
+    transform: translateX(30px);
+}
+
+#chart2-container {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+
+#legend2{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 20px;
+}
+.tooltip {
+    position: absolute;
+    background: rgba(0, 0, 0, 0.7);
+    color: white;
+    padding: 5px 10px;
+    border-radius: 5px;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.3s;
 }

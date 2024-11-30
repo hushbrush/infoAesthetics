@@ -28,10 +28,10 @@ async function getData() {
 
 
 getData().then(data => {
-    preWordTree(data);
+    // preWordTree(data);
     preqvq(data);
-    presun(data);
-    prechart3(data);
+    // presun(data);
+    // prechart3(data);
 
     
 });
@@ -62,6 +62,7 @@ function preqvq(data)
     }
     allAdj.sort((a, b) => a.sentiment_score - b.sentiment_score); 
     create_heatmap(allAdj);
+    
     
 }
 
@@ -677,7 +678,7 @@ function drawSunburst(data) {
 //the sentiment score should be in the tooltip
 function create_heatmap(data) {
     console.log(data);
-
+    
     const width = 1500;
     const height = 1000;
     const margin = { top: 50, right: 20, bottom: 50, left: 150 };
@@ -686,7 +687,7 @@ function create_heatmap(data) {
     const color = d3.scaleSequential()
         .domain([0, 8000]) // Set the domain for counts
         .interpolator(d3.interpolate(colours.primary, colours.secondary));
-
+    createLegend(color);
     let currentView = "macro"; // Default view
 
     // Create a tooltip element
@@ -788,24 +789,59 @@ function create_heatmap(data) {
                 tooltip.transition().duration(200).style("opacity", 0);
             });
 
-        // Add X-axis
-        svgContainer.append("g")
-            .attr("transform", `translate(0,${margin.top})`)
-            .call(d3.axisTop(x).ticks(5))
-            .selectAll("text")
-            .style("font-size", "16px")
-            .style("color", colours.text)
-            .style("text-anchor", "middle")
-            .style("font-family", "fractul-variable")
-            .style("font-weight", "400");
+       // Add X-axis
+svgContainer.append("g")
+.attr("transform", `translate(0,${margin.top})`)
+.call(d3.axisTop(x).ticks(5))
+.selectAll("text")
+.style("font-size", "16px")
+.style("fill", colours.stroke) // Use colours.stroke for the text color
+.style("text-anchor", "middle")
+.style("font-family", "fractul-variable")
+.style("font-weight", "400");
 
-        // Add Y-axis
-        svgContainer.append("g")
-            .attr("transform", `translate(${margin.left},0)`)
-            .call(d3.axisLeft(y))
-            .selectAll("text")
-            .style("font-size", "16px")
-            .style("color", colours.text);
+svgContainer.append("text") // X-axis label
+.attr("x", (width - margin.left - margin.right) / 2 + margin.left) // Centered horizontally
+.attr("y", margin.top - 30) // Position above the axis
+.style("text-anchor", "middle")
+.style("font-size", "18px")
+.style("font-family", "open-sans, sans-serif")
+.style("font-weight", "600")
+.style("fill", colours.stroke)
+.text("Rating");
+
+// Add Y-axis
+const yAxis = svgContainer.append("g")
+    .attr("transform", `translate(${margin.left},0)`);
+
+// Render the Y-axis differently based on the view
+if (view === "macro") {
+    // In macro view, do not render Y-axis ticks
+    yAxis.call(d3.axisLeft(y).tickFormat(() => "")); // Remove all labels
+} else {
+    // In micro view, render Y-axis ticks as usual
+    yAxis.call(d3.axisLeft(y));
+}
+
+// Style the axis ticks (if present)
+yAxis.selectAll("text")
+    .style("font-size", "16px")
+    .style("fill", colours.stroke) // Use colours.stroke for the text color
+    .style("font-family", "fractul-variable")
+    .style("font-weight", "400");
+
+// Add Y-axis label
+svgContainer.append("text")
+    .attr("x", -((height - margin.top - margin.bottom) / 2) - margin.top) // Centered vertically
+    .attr("y", margin.left - 40) // Position to the left of the axis
+    .attr("transform", "rotate(-90)") // Rotate for vertical text
+    .style("text-anchor", "middle")
+    .style("font-size", "18px")
+    .style("font-family", "open-sans, sans-serif")
+    .style("font-weight", "600")
+    .style("fill", colours.stroke)
+    .text(view === "macro" ? "Adjectives (hover over the chart to see the names)" : "");
+
     }
 
     // Initialize with macro view
@@ -817,6 +853,52 @@ function create_heatmap(data) {
         drawChart(currentView);
     });
 }
+function createLegend(colorScale) {
+    const legendWidth = 300;
+    const legendHeight = 20;
+    let width =1000, height =1500;
+   let  margin = { top: 20, right: 20, bottom: 50, left: 150 };
+   
+   let gradient = d3.select("defs").append("linearGradient")
+
+    
+    const legendContainer = d3.select("legend2").append("g")
+        .attr("transform", `translate(${width - legendWidth - margin.right},${margin.top})`);
+
+
+    const legendDomain = colorScale.domain();
+    gradient.append("stop")
+        .attr("offset", "0%")
+        .attr("stop-color", colorScale(legendDomain[0]));
+    gradient.append("stop")
+        .attr("offset", "100%")
+        .attr("stop-color", colorScale(legendDomain[1]));
+
+    // Draw the legend bar
+    legendContainer.append("rect")
+        .attr("width", legendWidth)
+        .attr("height", legendHeight)
+        .style("fill", "url(#legendGradient)");
+
+    // Add labels for the legend
+    const legendScale = d3.scaleLinear()
+        .domain(legendDomain)
+        .range([0, legendWidth]);
+
+    const axisBottom = d3.axisBottom(legendScale)
+        .ticks(5)
+        .tickSize(-legendHeight)
+        .tickFormat(d3.format("~s"));
+
+    legendContainer.append("g")
+        .attr("transform", `translate(0,${legendHeight})`)
+        .call(axisBottom)
+        .selectAll("text")
+        .style("font-size", "14px")
+        .style("font-family", "open-sans, sans-serif")
+        .style("color", colours.text);
+}
+
 
 
 

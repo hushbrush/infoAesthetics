@@ -23,9 +23,11 @@
       <h2>Categorization of clothes.</h2>
       <h3>Click to move through categories and hover on the reviews to read them.</h3>
       <svg id="chart4svg" width="1800" height="1080"></svg>
+      <div id ="space"></div>
     </section>
 
     <section id="chart3">
+     
       <h2>The demographics of fashion recommendations</h2>
       <h3>Use the slider to pick a different age.</h3>
       <div id="chart3svg0"></div>
@@ -38,20 +40,33 @@
     </section>
     
     <section id="chart1" style="overflow: auto;">
+      <div id ="space"></div>
       <h3>Explore the flow of words by selecting the first word, and then clicking on the nodes</h3>
       <svg id="chart1svg" width="1800" height="1080"></svg>
       <div>
         <label for="dropdown">Select starting word: </label>
         <select id="dropdown"></select>
+        <div id ="space"></div>
       </div>
     </section>
 
-    <section id="">
+    <section id="qvq">
+      <div id ="space"></div>
       <h2>Qualitative vs Quantitative: Do words mean the same to us all?</h2>
       <h3>hover over the chart to see details.</h3>
       
-      <button id="toggleView"></button>
-      <svg id="chart2svg" width="1920" height="1080"></svg>
+      <div id="toggleContainer">
+        <span>Words</span>
+        <input type="checkbox" id="toggleView">
+        <span>Sentiment</span>
+    </div>
+    
+    <div id="chart2-container">
+      <svg id="chart2svg" width="1500" height="1000"></svg>
+      <svg id="legend2" width="400" height="1000"></svg>
+  </div>
+  
+      <div id ="space"></div>
     </section>
 
   
