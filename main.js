@@ -674,11 +674,11 @@ function drawSunburst(data) {
 
 
 
-//the y axis needs to be ticking the sentiment scores. 
-//the sentiment score should be in the tooltip
+
 function create_heatmap(data) {
+    console.log("heatmap")
     console.log(data);
-    
+
     const width = 1500;
     const height = 1000;
     const margin = { top: 50, right: 20, bottom: 50, left: 150 };
@@ -687,19 +687,23 @@ function create_heatmap(data) {
     const color = d3.scaleSequential()
         .domain([0, 8000]) // Set the domain for counts
         .interpolator(d3.interpolate(colours.primary, colours.secondary));
-    createLegend(color);
+    
     let currentView = "macro"; // Default view
 
     // Create a tooltip element
     const tooltip = d3.select("body").append("div")
-        .attr("class", "tooltip")
-        .style("position", "absolute")
-        .style("background", "rgba(0, 0, 0, 0.7)")
-        .style("color", "white")
-        .style("padding", "5px 10px")
-        .style("border-radius", "5px")
-        .style("pointer-events", "none")
-        .style("opacity", 0);
+    .attr("class", "tooltip")
+    .style("position", "absolute")
+    .style("background", "rgba(0, 0, 0, 0.7)")
+    .style("color", "white")
+    .style("padding", "5px 10px")
+    .style("border-radius", "5px")
+    .style("pointer-events", "none")
+    .style("opacity", 0)
+    .style("width", "100px")  // Set the width to 100px
+    .style("word-wrap", "break-word")  // Ensure text wraps inside the box
+    .style("white-space", "normal"); // Allow the text to break into multiple lines
+
 
     function drawChart(view) {
         svgContainer.selectAll("*").remove(); // Clear existing content
@@ -775,77 +779,119 @@ function create_heatmap(data) {
             .attr("fill", d => color(d.count))
             .on("mouseover", function (event, d) {
                 if (view === "macro") {
+                    // Find the original data item associated with the adjective
+                    const dataItem = data.find(item => item.adjective === d.adjective);
+            
+                    // Highlight the hovered word across all ratings
+                    svgContainer.selectAll("rect")
+                        .transition()
+                        .duration(200)
+                        .style("opacity", other => (other.adjective === d.adjective ? 1 : 0.1));
+            
+                    // Show tooltip
                     tooltip.transition().duration(200).style("opacity", 1);
-                    tooltip.html(`<strong>${"Word:"+d.adjective+", Sentiment Score: "+d.sentiment_score+", Rating:"+d.rating}</strong>`)
-                        .style("left", (event.pageX + 10) + "px")
-                        .style("top", (event.pageY - 10) + "px");
+                    tooltip.html(`<strong>${"Word: " + d.adjective + ", Sentiment Score: " + (dataItem ? dataItem.sentiment_score : 'N/A') + ", Rating: " + d.rating}</strong>`)
+                        .style("left", (event.pageX + 20) + "px")
+                        .style("top", (event.pageY + 50) + "px");
                 }
             })
+            
             .on("mousemove", function (event) {
                 tooltip.style("left", (event.pageX + 10) + "px")
                     .style("top", (event.pageY - 10) + "px");
             })
             .on("mouseout", function () {
-                tooltip.transition().duration(200).style("opacity", 0);
+                if (view === "macro") {
+                    // Reset the opacity of all rectangles
+                    svgContainer.selectAll("rect")
+                        .transition()
+                        .duration(200)
+                        .style("opacity", 1);
+
+                    // Hide tooltip
+                    tooltip.transition().duration(200).style("opacity", 0);
+                }
             });
 
        // Add X-axis
-svgContainer.append("g")
-.attr("transform", `translate(0,${margin.top})`)
-.call(d3.axisTop(x).ticks(5))
-.selectAll("text")
-.style("font-size", "16px")
-.style("fill", colours.stroke) // Use colours.stroke for the text color
-.style("text-anchor", "middle")
-.style("font-family", "fractul-variable")
-.style("font-weight", "400");
-
-svgContainer.append("text") // X-axis label
-.attr("x", (width - margin.left - margin.right) / 2 + margin.left) // Centered horizontally
-.attr("y", margin.top - 30) // Position above the axis
-.style("text-anchor", "middle")
-.style("font-size", "18px")
-.style("font-family", "open-sans, sans-serif")
-.style("font-weight", "600")
-.style("fill", colours.stroke)
-.text("Rating");
-
-// Add Y-axis
-const yAxis = svgContainer.append("g")
-    .attr("transform", `translate(${margin.left},0)`);
-
-// Render the Y-axis differently based on the view
-if (view === "macro") {
-    // In macro view, do not render Y-axis ticks
-    yAxis.call(d3.axisLeft(y).tickFormat(() => "")); // Remove all labels
-} else {
-    // In micro view, render Y-axis ticks as usual
-    yAxis.call(d3.axisLeft(y));
-}
-
-// Style the axis ticks (if present)
-yAxis.selectAll("text")
-    .style("font-size", "16px")
-    .style("fill", colours.stroke) // Use colours.stroke for the text color
+       svgContainer.append("g")
+    .attr("transform", `translate(0,${margin.top})`)
+    .call(d3.axisTop(x).ticks(5))
+    .selectAll("text")
+    .style("font-size", "14px")
+    .style("stroke", colours.stroke) // Apply stroke to the text
+    .style("text-anchor", "middle")
     .style("font-family", "fractul-variable")
     .style("font-weight", "400");
 
-// Add Y-axis label
-svgContainer.append("text")
-    .attr("x", -((height - margin.top - margin.bottom) / 2) - margin.top) // Centered vertically
-    .attr("y", margin.left - 40) // Position to the left of the axis
-    .attr("transform", "rotate(-90)") // Rotate for vertical text
-    .style("text-anchor", "middle")
-    .style("font-size", "18px")
-    .style("font-family", "open-sans, sans-serif")
-    .style("font-weight", "600")
-    .style("fill", colours.stroke)
-    .text(view === "macro" ? "Adjectives (hover over the chart to see the names)" : "");
+// Apply stroke to the axis line (path)
+svgContainer.selectAll(".domain")
+    .style("stroke", colours.stroke); // Apply stroke color to the X-axis line
 
-    }
+
+        svgContainer.append("text") // X-axis label
+            .attr("x", (width - margin.left - margin.right) / 2 + margin.left) // Centered horizontally
+            .attr("y", margin.top - 30) // Position above the axis
+            .style("text-anchor", "middle")
+            .style("font-size", "18px")
+            .style("font-family", "open-sans, sans-serif")
+            .style("font-weight", "600")
+            .style("fill", colours.stroke)
+            .text("Rating");
+
+        // Add Y-axis
+        const yAxis = svgContainer.append("g")
+            .attr("transform", `translate(${margin.left},0)`);
+
+        // Render the Y-axis differently based on the view
+if (view === "macro") {
+    // In macro view, do not render Y-axis ticks
+    yAxis.call(d3.axisLeft(y).tickFormat(() => "")); // Remove all labels
+
+    // Apply stroke to the axis line (path), make it thinner or remove it entirely
+    yAxis.selectAll(".domain")
+        .style("stroke", "none") // Remove the stroke completely
+        .style("stroke-width", 0); // Set stroke width to 0 (making it effectively invisible)
+
+} 
+else {
+    yAxis.call(d3.axisLeft(y));
+    // Apply stroke to the axis line (path)
+    yAxis.selectAll(".domain")
+        .style("stroke", colours.stroke); // Apply stroke color to the Y-axis line
+}
+
+      
+        // Style the axis ticks (if present)
+        yAxis.selectAll("text")
+            .style("font-size", "16px")
+            .style("fill", colours.text) 
+            .style("font-family", "fractul-variable")
+            .style("font-weight", "400");
+
+        // Add Y-axis label
+        svgContainer.append("text")
+            .attr("x", -((height - margin.top - margin.bottom) / 2) - margin.top) // Centered vertically
+            .attr("y", margin.left - 40) // Position to the left of the axis
+            .attr("transform", "rotate(-90)") // Rotate for vertical text
+            .style("text-anchor", "middle")
+            .style("font-size", "18px")
+            .style("font-family", "open-sans, sans-serif")
+            .style("font-weight", "600")
+            .style("fill", colours.stroke)
+            .text(view === "macro" ? "Adjectives (hover over the chart to see the names)" : "");
+   
+            svgContainer.selectAll(".tick line") // For X-axis
+            .style("stroke", colours.stroke);
+        
+        yAxis.selectAll(".tick line") // For Y-axis
+            .style("stroke", colours.stroke);
+        
+        }
 
     // Initialize with macro view
     drawChart(currentView);
+    createLegend(color);
 
     // Add button listener for toggling views
     d3.select("#toggleView").on("click", () => {
@@ -853,18 +899,9 @@ svgContainer.append("text")
         drawChart(currentView);
     });
 }
+
 function createLegend(colorScale) {
-    const legendWidth = 300;
-    const legendHeight = 20;
-    let width =1000, height =1500;
-   let  margin = { top: 20, right: 20, bottom: 50, left: 150 };
    
-   let gradient = d3.select("defs").append("linearGradient")
-
-    
-    const legendContainer = d3.select("legend2").append("g")
-        .attr("transform", `translate(${width - legendWidth - margin.right},${margin.top})`);
-
 
     const legendDomain = colorScale.domain();
     gradient.append("stop")
