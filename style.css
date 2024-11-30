@@ -133,3 +133,26 @@ h4 {
     opacity: 0;
     transition: opacity 0.3s;
 }
+
+#ageDropdown {
+    display: flex;
+    align-items: center;
+    gap: 10px; /* Add spacing between label and dropdown */
+    font-family: Arial, sans-serif; /* Optional: Set font for consistency */
+    color: #a3f59d; /* Set text color */
+}
+
+#ageDropdown select {
+    font-size: 14px; /* Adjust font size */
+    padding: 5px 10px; /* Add padding to the dropdown */
+    border: 2px solid #a3f59d; /* Border color */
+    border-radius: 4px; /* Rounded edges */
+    background-color: white; /* Background color */
+    color: #a3f59d; /* Text color */
+    cursor: pointer; /* Change cursor to pointer on hover */
+    outline: none; /* Remove focus outline */
+}
+
+#ageDropdown select:focus {
+    border-color: #6bb87d; /* Change border color on focus */
+}

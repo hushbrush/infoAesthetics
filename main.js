@@ -28,9 +28,9 @@ async function getData() {
 
 
 getData().then(data => {
-    // preWordTree(data);
-    // preqvq(data);
-    // presun(data);
+    preWordTree(data);
+    preqvq(data);
+    presun(data);
     prechart3(data);
 
     
@@ -92,7 +92,12 @@ function prechart3(data)
 
 }
 
-
+//second x axis should be on top, with their labels on the top.
+//the max values on the y axis should remain the same the same no matter what, so it shoud be calculated for the max values in the beginning of the chart, and then as the slider data changes, the new bars are creating on that static x and y axis values.
+//the x and y axis lines and texts and tixks should all be coloured using colours.stroke and colours.text.
+//the slider should be styled better
+//the slider should be in between the two charts.
+//need a legend.
 function createBarChart(data) {
     const width = 800;
     const height = 1000;
@@ -104,11 +109,13 @@ function createBarChart(data) {
         .attr("width", width)
         .attr("height", height);
 
-    // Define top and bottom chart groups (update these to only set the transform)
-    const topChartGroup = svg.append("g")
+    // Define top and bottom chart groups
+    const topChartGroup = svg
+        .append("g")
         .attr("transform", `translate(${margin.left}, ${margin.top})`);
 
-    const bottomChartGroup = svg.append("g")
+    const bottomChartGroup = svg
+        .append("g")
         .attr("transform", `translate(${margin.left}, ${height / 2 + margin.top})`);
 
     // Define scales
@@ -117,19 +124,18 @@ function createBarChart(data) {
         .padding(0.1);
 
     const y = d3.scaleLinear()
-        .range([height / 2 - margin.top - margin.bottom, 0]);  // Adjust for top half
+        .range([height / 2 - margin.top - margin.bottom, 0]); // Top chart (positive)
 
     const y2 = d3.scaleLinear()
-        .range([0, height / 2 - margin.top - margin.bottom]);  // Adjust for bottom half
+        .range([0, height / 2 - margin.top - margin.bottom]); // Bottom chart (positive but below x-axis)
 
     // Axes groups
     const xAxisGroupTop = topChartGroup.append("g")
-        .attr("transform", `translate(0, ${height / 2 - margin.top - margin.bottom})`); // Place x-axis at the bottom of the top chart
+        .attr("transform", `translate(0, ${height / 2 - margin.top - margin.bottom})`);
 
     const yAxisGroupTop = topChartGroup.append("g");
 
-    const xAxisGroupBottom = bottomChartGroup.append("g")
-        .attr("transform", `translate(0, ${height / 2 - margin.top - margin.bottom})`); // Place x-axis at the top of the bottom chart
+    const xAxisGroupBottom = bottomChartGroup.append("g");
 
     const yAxisGroupBottom = bottomChartGroup.append("g");
 
@@ -161,105 +167,63 @@ function createBarChart(data) {
 
         // Update scales for both top and bottom charts
         x.domain(Array.from(allClassNames));
-        y.domain([0, d3.max(chartData, d => d.recommended)]);  // Top chart uses positive values
-        y2.domain([0, d3.max(chartData, d => d.notRecommended)]);  // Bottom chart uses positive values but below x-axis
+        y.domain([0, d3.max(chartData, d => d.recommended)]);
+        y2.domain([0, d3.max(chartData, d => d.notRecommended)]);
 
-        // Update x-axis position and labels for top and bottom
-        xAxisGroupTop
-            .call(d3.axisBottom(x))
-            .selectAll("text")
-            .style("font-size", "12px")
-            .style("fill", colours.text); // Apply colour to text
+        // Update x-axis for both charts
+        xAxisGroupTop.call(d3.axisBottom(x).tickSize(0)).selectAll("text").style("fill", colours.text);
+        xAxisGroupBottom.call(d3.axisBottom(x).tickSize(0)).selectAll("text").style("fill", colours.text);
 
-        xAxisGroupBottom
-            .call(d3.axisBottom(x))
-            .selectAll("text")
-            .style("font-size", "12px")
-            .style("fill", colours.text); // Apply colour to text
+        // Update y-axis for both charts
+        yAxisGroupTop.call(d3.axisLeft(y)).selectAll("text").style("fill", colours.text);
+        yAxisGroupBottom.call(d3.axisLeft(y2)).selectAll("text").style("fill", colours.text);
 
-        // Update y-axis for the top chart
-        yAxisGroupTop
-            .call(d3.axisLeft(y))
-            .selectAll("text")
-            .style("font-size", "12px")
-            .style("fill", colours.text); // Apply colour to text
-
-        // Update y-axis for the bottom chart, move below x-axis
-        yAxisGroupBottom
-            .call(d3.axisLeft(y2))
-            .selectAll("text")
-            .style("font-size", "12px")
-            .style("fill", colours.text); // Apply colour to text
-        yAxisGroupBottom
-            .attr("transform", `translate(0, ${y2(0)})`) // Move axis below the x-axis
-            .selectAll("path, line")
-            .style("stroke", colours.stroke); // Apply stroke colour to lines
-
-        // Bind data to bars for both charts
-        const barsTop = topChartGroup.selectAll(".bar-group")
+        // Bind data to bars for top chart
+        const barsTop = topChartGroup.selectAll(".bar-top")
             .data(chartData, d => d.class_name);
 
-        const barsBottom = bottomChartGroup.selectAll(".bar-group")
+        const barsBottom = bottomChartGroup.selectAll(".bar-bottom")
             .data(chartData, d => d.class_name);
 
-        // Enter new bar groups for top chart
-        const barGroupsTop = barsTop.enter()
-            .append("g")
-            .attr("class", "bar-group");
-
-        // Add recommended bars (positive, above x-axis)
-        barGroupsTop.append("rect")
-            .attr("class", "bar recommended")
+        // Enter new bars for top chart
+        barsTop.enter()
+            .append("rect")
+            .attr("class", "bar-top")
+            .merge(barsTop)
             .attr("x", d => x(d.class_name))
             .attr("y", d => y(d.recommended))
             .attr("width", x.bandwidth())
-            .attr("height", d => y(0) - y(d.recommended)) // Height from 0 to positive value
+            .attr("height", d => y(0) - y(d.recommended))
             .attr("fill", colours.primary);
 
-        // Enter new bar groups for bottom chart
-        const barGroupsBottom = barsBottom.enter()
-            .append("g")
-            .attr("class", "bar-group");
-
-        // Add not-recommended bars (negative, below x-axis)
-        barGroupsBottom.append("rect")
-            .attr("class", "bar not-recommended")
-            .attr("x", d => x(d.class_name))
-            .attr("y", d => y2(0)) // Start at x-axis (y=0)
-            .attr("width", x.bandwidth())
-            .attr("height", d => y2(d.notRecommended) - y2(0)) // Height from 0 to positive value, but below x-axis
-            .attr("fill", colours.secondary);
-
-        // Update existing bars for the top chart
-        barsTop.select(".bar.recommended")
-            .attr("x", d => x(d.class_name))
-            .attr("y", d => y(d.recommended))
-            .attr("width", x.bandwidth())
-            .attr("height", d => y(0) - y(d.recommended));
-
-        // Update existing bars for the bottom chart
-        barsBottom.select(".bar.not-recommended")
+        // Enter new bars for bottom chart
+        barsBottom.enter()
+            .append("rect")
+            .attr("class", "bar-bottom")
+            .merge(barsBottom)
             .attr("x", d => x(d.class_name))
             .attr("y", d => y2(0))
             .attr("width", x.bandwidth())
-            .attr("height", d => y2(d.notRecommended) - y2(0));
+            .attr("height", d => y2(d.notRecommended) - y2(0))
+            .attr("fill", colours.secondary);
 
-        // Remove old bars for top and bottom charts
+        // Exit old bars
         barsTop.exit().remove();
         barsBottom.exit().remove();
     }
 
-    // Attach slider event
-    const slider = d3.select("#ageRange");
-    slider.on("input", function () {
-        const ageValue = +this.value;
-        d3.select("#ageValue").text(ageValue);
-        updateChart(0, ageValue); // Adjust range as needed
+    // Attach dropdown event
+    const dropdown = d3.select("#ageGroupSelect");
+    dropdown.on("change", function () {
+        const [minAge, maxAge] = this.value.split("-").map(Number);
+        updateChart(minAge, maxAge);
     });
 
     // Initial render
-    updateChart(0, +slider.property("value"));
+    updateChart(0, 10); // Default to the first age group
 }
+
+
 
 
 
