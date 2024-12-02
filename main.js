@@ -32,8 +32,6 @@ getData().then(data => {
     preqvq(data);
     presun(data);
     prechart3(data);
-
-    
 });
 
 
@@ -98,25 +96,30 @@ function prechart3(data)
 //the slider should be styled better
 //the slider should be in between the two charts.
 //need a legend.
+
 function createBarChart(data) {
     const width = 800;
     const height = 1000;
     const margin = { top: 20, right: 20, bottom: 50, left: 50 };
 
-    // Create SVG container
-    const svg = d3.select("#chart3")
+    // Select existing SVG containers
+    const topChartGroup1 = d3.select("#chart3svg0")
         .append("svg")
         .attr("width", width)
-        .attr("height", height);
-
-    // Define top and bottom chart groups
-    const topChartGroup = svg
-        .append("g")
+        .attr("height", height/2)
         .attr("transform", `translate(${margin.left}, ${margin.top})`);
 
-    const bottomChartGroup = svg
-        .append("g")
+    const bottomChartGroup1 = d3.select("#chart3svg1")
+        .append("svg")
+        .attr("width", width)
+        .attr("height", height/2)
         .attr("transform", `translate(${margin.left}, ${height / 2 + margin.top})`);
+
+
+  
+  
+
+   
 
     // Define scales
     const x = d3.scaleBand()
@@ -129,20 +132,22 @@ function createBarChart(data) {
     const y2 = d3.scaleLinear()
         .range([0, height / 2 - margin.top - margin.bottom]); // Bottom chart (positive but below x-axis)
 
-    // Axes groups
-    const xAxisGroupTop = topChartGroup.append("g")
+    // Axes groups for both charts
+    const xAxisGroupTop1 = topChartGroup1.append("g")
         .attr("transform", `translate(0, ${height / 2 - margin.top - margin.bottom})`);
 
-    const yAxisGroupTop = topChartGroup.append("g");
+    const yAxisGroupTop1 = topChartGroup1.append("g");
 
-    const xAxisGroupBottom = bottomChartGroup.append("g");
+    const xAxisGroupBottom1 = bottomChartGroup1.append("g");
 
-    const yAxisGroupBottom = bottomChartGroup.append("g");
+    const yAxisGroupBottom1 = bottomChartGroup1.append("g");
+
+
 
     // Collect all unique class_names for persistent x-axis labels
     const allClassNames = new Set(data.flatMap(dataset => dataset.map(d => d.class_name)));
 
-    // Update function to filter and redraw the bar chart
+    // Update function to filter and redraw the bar chart for both charts
     function updateChart(minAge, maxAge) {
         // Filter data by age
         const filteredData = data.map(dataset =>
@@ -171,45 +176,50 @@ function createBarChart(data) {
         y2.domain([0, d3.max(chartData, d => d.notRecommended)]);
 
         // Update x-axis for both charts
-        xAxisGroupTop.call(d3.axisBottom(x).tickSize(0)).selectAll("text").style("fill", colours.text);
-        xAxisGroupBottom.call(d3.axisBottom(x).tickSize(0)).selectAll("text").style("fill", colours.text);
+        xAxisGroupTop1.call(d3.axisBottom(x).tickSize(0)).selectAll("text").style("fill", colours.text);
+        xAxisGroupBottom1.call(d3.axisBottom(x).tickSize(0)).selectAll("text").style("fill", colours.text);
 
         // Update y-axis for both charts
-        yAxisGroupTop.call(d3.axisLeft(y)).selectAll("text").style("fill", colours.text);
-        yAxisGroupBottom.call(d3.axisLeft(y2)).selectAll("text").style("fill", colours.text);
+        yAxisGroupTop1.call(d3.axisLeft(y)).selectAll("text").style("fill", colours.text);
+        yAxisGroupBottom1.call(d3.axisLeft(y2)).selectAll("text").style("fill", colours.text);
 
-        // Bind data to bars for top chart
-        const barsTop = topChartGroup.selectAll(".bar-top")
+
+        // Bind data to bars for top chart 1
+        const barsTop1 = topChartGroup1.selectAll(".bar-top")
             .data(chartData, d => d.class_name);
 
-        const barsBottom = bottomChartGroup.selectAll(".bar-bottom")
+        const barsBottom1 = bottomChartGroup1.selectAll(".bar-bottom")
             .data(chartData, d => d.class_name);
 
-        // Enter new bars for top chart
-        barsTop.enter()
+  
+        // Enter new bars for top chart 1
+        barsTop1.enter()
             .append("rect")
             .attr("class", "bar-top")
-            .merge(barsTop)
+            .merge(barsTop1)
             .attr("x", d => x(d.class_name))
             .attr("y", d => y(d.recommended))
             .attr("width", x.bandwidth())
             .attr("height", d => y(0) - y(d.recommended))
             .attr("fill", colours.primary);
 
-        // Enter new bars for bottom chart
-        barsBottom.enter()
+        // Enter new bars for bottom chart 1
+        barsBottom1.enter()
             .append("rect")
             .attr("class", "bar-bottom")
-            .merge(barsBottom)
+            .merge(barsBottom1)
             .attr("x", d => x(d.class_name))
             .attr("y", d => y2(0))
             .attr("width", x.bandwidth())
             .attr("height", d => y2(d.notRecommended) - y2(0))
             .attr("fill", colours.secondary);
 
+  
+
         // Exit old bars
-        barsTop.exit().remove();
-        barsBottom.exit().remove();
+        barsTop1.exit().remove();
+        barsBottom1.exit().remove();
+
     }
 
     // Attach dropdown event
@@ -220,7 +230,7 @@ function createBarChart(data) {
     });
 
     // Initial render
-    updateChart(0, 10); // Default to the first age group
+    updateChart(11, 20); // Default to the first age group
 }
 
 
@@ -336,7 +346,7 @@ function buildAndDrawWordTree(data, keyword) {
 
 function drawWordTree(data, fullData) {
     const width = 1500;
-    const height = 1300;
+    const height = 2000;
     const margin = { top: 20, right: 120, bottom: 20, left: 120 };
 
     const treeLayout = d3.tree().size([height, width - 200]);
@@ -520,10 +530,11 @@ function presun(data) {
 }
 
 function drawSunburst(data) {
-    
     const width = 1000;
     const height = width;
     const radius = width / 6;
+    d3.select("#review-box").html(`<p>${"Click through and hover over the reviews to read them."}</p>`);
+
     // Create the color scale.
     const color = d3.scaleOrdinal()
         .domain(data.children.map(d => d.name))
@@ -531,13 +542,12 @@ function drawSunburst(data) {
 
     // Compute the layout.
     const hierarchy = d3.hierarchy(data)
-        .sum(d =>  d.children ? d.children.length: 360) // Use number of children as value
-        .sort((a, b) => b.value - a.value)
-        
+        .sum(d => d.children ? d.children.length : 360) // Use number of children as value
+        .sort((a, b) => b.value - a.value);
 
     const root = d3.partition()
         .size([2 * Math.PI, hierarchy.height + 1])(hierarchy);
-    root.each(d => d.current = d);
+    root.each(d => (d.current = d));
 
     // Create the arc generator.
     const arc = d3.arc()
@@ -554,60 +564,33 @@ function drawSunburst(data) {
         .attr("width", width)
         .attr("height", height)
         .attr("viewBox", [-width / 2, -height / 2, width, width])
-        .style("font", "14px, sans-serif")
-        .style('color', colours.text);
-  
-
-    // Create a tooltip div (hidden by default).
-    const tooltip = d3.select("body")
-        .append("div")
-        .attr("class", "tooltip")
-        .style("position", "absolute")
-        .style("background", "rgba(0, 0, 0, 0.7)")
-        .style("color", "white")
-        .style("padding", "8px")
-        .style("border-radius", "4px")
-        .style("pointer-events", "none")
-        .style("display", "none")
-        .style("width", "400px") // Set fixed width for tooltip
-        .style("word-wrap", "break-word"); // Enable word wrap
+        .style("font", "18px, sans-serif")
+        .style("font-family", "fractul-variable")
+        .style("font-weight", "400")
+        .style("fill", colours.text);
 
     // Append the arcs.
     const path = svg.append("g")
         .selectAll("path")
         .data(root.descendants().slice(1)) // Skip the root node
         .join("path")
-        .attr("fill", d => { while (d.depth > 1) d = d.parent; return color(d.data.name); })
-        .attr("fill-opacity", d => arcVisible(d.current) ? (d.children ? 0.6 : 0.4) : 0)
-        .attr("pointer-events", d => arcVisible(d.current) ? "auto" : "none")
+        .attr("fill", d => {
+            while (d.depth > 1) d = d.parent;
+            return color(d.data.name);
+        })
+        .attr("fill-opacity", d => (arcVisible(d.current) ? (d.children ? 0.6 : 0.4) : 0))
+        .attr("pointer-events", d => (arcVisible(d.current) ? "auto" : "none"))
         .attr("d", d => arc(d.current));
 
-    // Add tooltips for review nodes.
+    // Handle hover for reviews in the review-box div.
+   
     path.filter(d => !d.children) // Only for leaf nodes (reviews)
         .on("mouseover", (event, d) => {
-            tooltip.style("display", "block")
-                .html(d.data.name); // Display the review text
-        })
-        .on("mousemove", event => {
-            tooltip.style("top", (event.pageY + 10) + "px")
-                .style("left", (event.pageX + 10) + "px")
-                .style("height", "auto"); // Reset height to auto
-
-            const tooltipWidth = parseInt(tooltip.style("width")); // Get tooltip width
-            const tooltipHeight = parseInt(tooltip.style("height")); // Get tooltip height
-
-            // Check if the tooltip exceeds the window width
-            if (event.pageX + tooltipWidth > window.innerWidth) {
-                tooltip.style("left", (event.pageX - tooltipWidth - 10) + "px");
-            }
-
-            // Check if the tooltip exceeds the window height
-            if (event.pageY + tooltipHeight > window.innerHeight) {
-                tooltip.style("top", (event.pageY - tooltipHeight - 10) + "px");
-            }
+            d3.select("#review-box").html(`<p>${d.data.name || "No data available"}</p>`);
         })
         .on("mouseout", () => {
-            tooltip.style("display", "none");
+            d3.select("#review-box").html(`<p>${"Click through and hover over the reviews to read them."}</p>`);
+           
         });
 
     // Add interactivity (click to zoom).
@@ -637,11 +620,13 @@ function drawSunburst(data) {
     function clicked(event, p) {
         parent.datum(p.parent || root);
 
-        root.each(d => d.target = {
-            x0: Math.max(0, Math.min(1, (d.x0 - p.x0) / (p.x1 - p.x0))) * 2 * Math.PI,
-            x1: Math.max(0, Math.min(1, (d.x1 - p.x0) / (p.x1 - p.x0))) * 2 * Math.PI,
-            y0: Math.max(0, d.y0 - p.depth),
-            y1: Math.max(0, d.y1 - p.depth)
+        root.each(d => {
+            d.target = {
+                x0: Math.max(0, Math.min(1, (d.x0 - p.x0) / (p.x1 - p.x0))) * 2 * Math.PI,
+                x1: Math.max(0, Math.min(1, (d.x1 - p.x0) / (p.x1 - p.x0))) * 2 * Math.PI,
+                y0: Math.max(0, d.y0 - p.depth),
+                y1: Math.max(0, d.y1 - p.depth)
+            };
         });
 
         const t = svg.transition().duration(750);
@@ -650,18 +635,19 @@ function drawSunburst(data) {
         path.transition(t)
             .tween("data", d => {
                 const i = d3.interpolate(d.current, d.target);
-                return t => d.current = i(t);
+                return t => (d.current = i(t));
             })
             .filter(function (d) {
                 return +this.getAttribute("fill-opacity") || arcVisible(d.target);
             })
-            .attr("fill-opacity", d => arcVisible(d.target) ? (d.children ? 0.6 : 0.4) : 0)
-            .attr("pointer-events", d => arcVisible(d.target) ? "auto" : "none")
+            .attr("fill-opacity", d => (arcVisible(d.target) ? (d.children ? 0.6 : 0.4) : 0))
+            .attr("pointer-events", d => (arcVisible(d.target) ? "auto" : "none"))
             .attrTween("d", d => () => arc(d.current));
 
         label.filter(function (d) {
             return +this.getAttribute("fill-opacity") || labelVisible(d.target);
-        }).transition(t)
+        })
+            .transition(t)
             .attr("fill-opacity", d => +labelVisible(d.target))
             .attrTween("transform", d => () => labelTransform(d.current));
     }
@@ -675,11 +661,12 @@ function drawSunburst(data) {
     }
 
     function labelTransform(d) {
-        const x = (d.x0 + d.x1) / 2 * 180 / Math.PI;
-        const y = (d.y0 + d.y1) / 2 * radius;
+        const x = ((d.x0 + d.x1) / 2) * 180 / Math.PI;
+        const y = ((d.y0 + d.y1) / 2) * radius;
         return `rotate(${x - 90}) translate(${y},0) rotate(${x < 180 ? 0 : 180})`;
     }
 }
+
 
 
 
@@ -848,7 +835,7 @@ function create_heatmap(data) {
             .attr("y", margin.top - 30) // Position above the axis
             .style("text-anchor", "middle")
             .style("font-size", "18px")
-            .style("font-family", "open-sans, sans-serif")
+            .style("font-family", "kranto-normal, sans-serif")
             .style("font-weight", "600")
             .style("fill", colours.stroke)
             .text("Rating for the review that the adjective was used in.");
@@ -888,7 +875,7 @@ function create_heatmap(data) {
             .attr("transform", "rotate(-90)") // Rotate for vertical text
             .style("text-anchor", "middle")
             .style("font-size", "18px")
-            .style("font-family", "open-sans, sans-serif")
+            .style("font-family", "kranto-normal, sans-serif")
             .style("font-weight", "600")
             .style("fill", colours.stroke)
             .text(view === "macro" ? "Adjectives (hover over the chart to see the names)" : "");
@@ -922,104 +909,18 @@ function createLegend(width, color) {
     // Create a new container for the legend
     const legendContainer = d3.select("#legend2"); 
 
-    // Create a gradient for the vertical legend
-    const gradient = legendContainer.append("defs")
-        .append("linearGradient")
-        .attr("id", "legendGradient")
-        .attr("x1", "0%")
-        .attr("y1", "0%")
-        .attr("x2", "0%")
-        .attr("y2", "100%");
-
-    const legendDomain = color.domain();
-    gradient.append("stop")
-        .attr("offset", "0%")
-        .attr("stop-color", color(legendDomain[0]));
-    gradient.append("stop")
-        .attr("offset", "100%")
-        .attr("stop-color", color(legendDomain[1]));
-
-    // Draw the vertical gradient rectangle
+    // Draw the white rectangle     
     legendContainer.append("rect")
-        .attr("x", width + 30)  // Position it next to your chart
+        .attr("x", width + 20)  // Position it next to your chart
         .attr("y", margin.top)  // Align with the top of your chart
         .attr("width", legendWidth)
         .attr("height", legendHeight)
-        .style("fill", "url(#legendGradient)");
-
-    // Add title to the legend
-    legendContainer.append("text")
-        .attr("x", width + 30 + legendWidth / 2) // Position it in the middle of the legend
-        .attr("y", margin.top - 10) // Adjust the y position as needed
-        .attr("text-anchor", "middle")
-        .style("font-size", "18px")
-        .style("font-weight", "bold")
-        .style("fill", "yellow") // Ensure text color is visible
-        .text("Legend");
-
-    // Create scale for the ticks along the gradient
-    const legendScale = d3.scaleLinear()
-        .domain(legendDomain)
-        .range([0, legendHeight]);
-
-    // Create ticks for the legend and add labels
-    const ticks = legendScale.ticks(5);  // Adjust number of ticks as needed
-    const tickContainer = legendContainer.append("g");
-
-    ticks.forEach((tickValue, i) => {
-        // Add tick lines
-        tickContainer.append("line")
-            .attr("x1", width + 20) // Align with the edge of the gradient
-            .attr("x2", width + 40) // Extend tick lines to the right
-            .attr("y1", legendScale(tickValue))
-            .attr("y2", legendScale(tickValue))
-            .style("stroke", "white")  // Use stroke color for the lines
-            .style("stroke-width", 1);
-
-        // Add tick labels
-        tickContainer.append("text")
-            .attr("x", width + 50) // Position labels to the right of the ticks
-            .attr("y", legendScale(tickValue))
-            .attr("dy", "0.3em")  // Slight vertical alignment adjustment
-            .style("font-size", "12px")
-            .style("font-family", "open-sans, sans-serif")
-            .style("fill", "white") // Ensure text is visible
-            .style("text-anchor", "start")
-            .text(d3.format(".0f")(tickValue));  // Format as integer
-    });
+        .style("fill", "white");
 }
 
 
 
 
-// function createLegend(width, color) {
-//     // Define the width and height of the legend rectangle
-//     const legendWidth = 200;
-//     const legendHeight = 1000;
-//     const margin = { top: 20, right: 20, bottom: 50, left: 50 };
-
-//     // Create a new container for the legend
-//     const legendContainer = d3.select("#legend2"); // Assuming you have an element with the id 'legendContainer'
-
-//     // Draw the white rectangle
-//         legendContainer.append("rect")
-//             .attr("x", width + 20)  // Position it next to your chart
-//             .attr("y", margin.top)  // Align with the top of your chart
-//             .attr("width", legendWidth)
-//             .attr("height", legendHeight)
-            
-//         // Add title to the legend
-//         legendContainer.append("text")
-//             .attr("x", width + 20 + legendWidth / 2) // Position it in the middle of the legend
-//             .attr("y", margin.top + 20) // Adjust the y position as needed
-//             .attr("text-anchor", "middle")
-//             .style("font-size", "18px")
-//             .style("font-weight", "bold")
-//             .style("fill", colours.text)
-//             .text("Legend");
-
-        
-// }
 
 
 

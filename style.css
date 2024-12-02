@@ -2,50 +2,63 @@ body {
     font-size: 16px;
     font-family: Arial, sans-serif;
     background-color: #262626;
-}
+
+        margin: 0; /* Remove default browser margins */
+        padding: 0; /* Ensure padding doesn't cause overflow */
+        overflow-x: hidden; /* Disable horizontal scrolling */
+    }
+    
+
 
 section {
-    width: 1920px;
-    height: 1080px;
+   
     margin-bottom: 20px;
+
 }
 
 h1 {
-    font-size: 100px;
-    margin-bottom: 10px;
-    margin-left: 10px;
-    text-align: left;
+    font-size: 150px;
+    text-align: center;
     font-family: "fractul-variable",sans-serif;
-    font-variation-settings: 'wght' 700;
+    font-variation-settings: 'wght' 1500;
     font-style: bold;
-    color: #ffed85;   
+    color: #ffed85;
+    line-height: 1; /* Adjust the line height value as needed */
 }
 
 h2 {
-    font-family: "fractul-variable", sans-serif;
+    font-family: "kranto-normal", sans-serif;
     font-weight: 400;
-    font-style: semi-bold;
-    font-size: 24px;
+    font-style: normal;
+    font-size: 30px;
     margin-bottom: 10px;
-    margin-left: 10px;
-    text-align: left;
+    margin-left: auto;
+    margin-right: auto;
+    text-align: center;
     color: #fb6d51;
 }
 
 h3 {
     font-size: 18px;
     margin-bottom: 10px;
-    margin-left: 10px;
-    font-family: "open-sans", sans-serif;
+    margin-left: auto;
+    margin-right: auto;
+    font-family: "fractul-variable", sans-serif;
+    font-variation-settings: 'wght' 300;
+    font-style: bold;
     color: #fb6d51;
+    text-align: center;
 }
 h4 {
+    font-size: 16px;;
     margin-bottom: 10px;
-    margin-left: 10px;
-    font-family: "open-sans", sans-serif;
+    margin-left: auto;
+    margin-right: auto;
+    font-family: "kranto-normal", sans-serif;
     font-weight: 400;
     font-style: normal;
-    color: #fff
+    color: #fff;
+    text-align: center;
 }
 
 
@@ -57,11 +70,39 @@ h4 {
     color: #fff !important;
 }
 
+#chart4svg {
+    display: block;  /* Use block instead of flex for SVG container */
+    margin: 0 auto;  /* Center the SVG */
+    text-align: center; /* Center align the content within the SVG container */
+    
+}
 
-#chart4svg{
-    margin: 0 auto;
-    display: flex;
-    justify-content: center;
+#review-box {
+    width: 400px; /* Ensure the review box is responsive */
+    height: 950px;
+    margin-top: 20px;
+    margin-left: 0px; /* Adjust the left margin as needed */
+    background: rgba(81, 81, 81, 0.1); /* Black with 10% opacity */
+    border-radius: 10px; /* Rounded edges */
+    color: #fff;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+    word-wrap: break-word;
+}
+#review-box p {
+    padding: 20px;
+    font-family: "kranto-normal", sans-serif;
+    font-weight: 400;
+    font-style: normal;
+    font-size: 18px; /* Customize font size for the text inside <p> */
+    line-height: 1.5; /* Optional: Increase line spacing for readability */
+    color: #fff; /* Maintain text color contrast */
+}
+
+
+
+
+#halfspace{
+    margin-top: 100px;
 }
 
 #space{
@@ -115,12 +156,34 @@ h4 {
     display: flex;
     justify-content: center;
     align-items: center;
+    margin-left: auto;
+    margin-right: auto;
+}
+#chart3svg0
+{
+    margin-bottom: 0px;
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-left: auto;
+    margin-right: auto;
+
 }
 
+#chart3svg1
+{   margin-top: 0px;
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-left: auto;
+    margin-right: auto;
 
+}
 #legend2{
     
-    margin-top: 80px;
+    margin-top: 100px;
     background-color: rgba(255, 255, 255, 0.229);
 }
 .tooltip {
@@ -138,8 +201,9 @@ h4 {
     display: flex;
     align-items: center;
     gap: 10px; /* Add spacing between label and dropdown */
-    font-family: Arial, sans-serif; /* Optional: Set font for consistency */
+    font-family: open-sans, sans-serif; /* Optional: Set font for consistency */
     color: #a3f59d; /* Set text color */
+    justify-content: center; /* Center align the content */
 }
 
 #ageDropdown select {
@@ -155,4 +219,24 @@ h4 {
 
 #ageDropdown select:focus {
     border-color: #6bb87d; /* Change border color on focus */
+}
+p {
+    font-family: "open-sans", sans-serif;
+    font-weight: 400;
+    font-style: normal;
+    font-size: 12px;
+    margin-bottom: 10px;
+    margin-left: auto;
+    margin-right: auto;
+    color: #fff;
+    text-align: left;
+}
+footer {
+    position: absolute;
+    left: 0;
+    width: 100%;
+    background-color: #000000;
+    color: white;
+    text-align: center;
+    padding: 10px;
 }

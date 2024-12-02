@@ -6,7 +6,9 @@
     <script src="https://d3js.org/d3.v7.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sentiment@5.0.1/build/sentiment.min.js"></script>
     <link rel="stylesheet" href="https://use.typekit.net/iag7mud.css">
-    <link rel="stylesheet" href="https://use.typekit.net/iag7mud.css">
+   
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet" />
+
     <script type="module" src="main.js"></script>
     <link rel="stylesheet" href="style.css" />
 
@@ -14,75 +16,96 @@
   </head>
 
   <body>
+    <div id ="space"></div>
     <h1>Fashion<br>Reviewed</h1>
     <h2>Insights from Women's Clothing Reviews on an e-commerce website.</h2>
+    <div id ="space"></div>
     <!-- <img src="assets/img1.png" alt="image depicting a lot of reviews."> -->
 
     <section id="chart4">
+      <h2>1. Categorization of clothes.</h2>
       
-      <h2>Categorization of clothes.</h2>
-      <h3>Click to move through categories and hover on the reviews to read them.</h3>
-      <svg id="chart4svg" width="1800" height="1080"></svg>
-      <div id ="space"></div>
-    </section>
+      <div id="halfspace"></div>
+      <div class="row">
+        <div class="col-md-8">
+          <svg id="chart4svg" width="1080" height="1080"></svg>
+        </div>
+        <div class="col-md-4">
+          <div id="review-box"></div>
+        </div>
+      </div>
+      <div id="space"></div>
+  </section>
+  
 
     <section id="chart3">
-      <h2>The demographics of fashion recommendations</h2>
+      <h2>2. The demographics of fashion recommendations</h2>
       <h3>Use the slider to pick a different age.</h3>
       
       <!-- First chart -->
       <div id="chart3svg0"></div>
-  
+
       <!-- Slider placed between the charts -->
       <div id="ageDropdown">
         AGE GROUP:
         <select id="ageGroupSelect">
-            <option value="0-10">0-10</option>
-            <option value="11-20">11-20</option>
-            <option value="21-30">21-30</option>
-            <option value="31-40">31-40</option>
-            <option value="41-50">41-50</option>
-            <option value="51-60">51-60</option>
-            <option value="61-70">61-70</option>
-            <option value="71-80">71-80</option>
-            <option value="81-90">81-90</option>
-            <option value="91-100">91-100</option>
+          <option value="11-20">11-20</option>
+          <option value="21-30">21-30</option>
+          <option value="31-40">31-40</option>
+          <option value="41-50">41-50</option>
+          <option value="51-60">51-60</option>
+          <option value="61-70">61-70</option>
+          <option value="71-80">71-80</option>
+          <option value="81-90">81-90</option>
+          <option value="91-100">91-100</option>
         </select>
-    </div>
-    
-  
-      <!-- Second chart -->
+      </div>
       <div id="chart3svg1"></div>
   
       <div id="space"></div>
   </section>
   
     
-    <section id="chart1" style="overflow: auto;">
+    <section id="chart1">
       <div id ="space"></div>
+      <h2>3. Sentence Patterns</h2>
       <h3>Explore the flow of words by selecting the first word, and then clicking on the nodes</h3>
-      <svg id="chart1svg" width="1800" height="1080"></svg>
-      <div>
-        <label for="dropdown">Select starting word: </label>
-        <select id="dropdown"></select>
-        <div id ="space"></div>
+      <div class="row">
+        <div class="col-md-1">
+          <div>
+            <!-- <label for="dropdown">Select starting word: </label> -->
+            <select id="dropdown"></select>
+            <!-- <div id ="space"></div> -->
+          </div>
+        </div>
+        <div class="col-md-11">
+          <svg id="chart1svg" width="1800" height="2000"></svg>
+        </div>
       </div>
+      
     </section>
 
     <section id="qvq">
       <div id ="space"></div>
-      <h2>Qualitative vs Quantitative: Do words mean the same to us all?</h2>
+      <h2>4. Qualitative vs Quantitative</h2>
+      <h3>Do words mean the same to us all?</h3>
       
-      
-      <div id="toggleContainer">
-        <span>Words</span>
-        <input type="checkbox" id="toggleView">
-        <span>Sentiment</span>
-    </div>
     
-    <div id="chart2-container" width="1920" height="1080">
-      <svg id="chart2svg" width="1500" height="1000"></svg>
-      <svg id="legend2" width="400" height="1000"></svg>
+    
+    <div id="chart2-container" class="row">
+      <div class="col-md-10">
+        <svg id="chart2svg" width="1500" height="1000"></svg>
+      </div>
+      <div class="col-md-2">
+        <svg id="legend2" width="300" height="1000">
+          <div id="toggleContainer">
+            <span>Words</span>
+            <input type="checkbox" id="toggleView">
+            <span>Sentiment</span>
+          </div>
+        </svg>
+      </div>
+    </div>
   </div>
   
       <div id ="space"></div>
@@ -93,8 +116,11 @@
     <section id="Outro">
     <h2>Methodology</h2>
     <h4>The data used in this project was downloaded in a CSV format from Kaggle. It was then processed and visualised using D3 in Javascript. </h4>
-    <h4>By Harshita C, MSDV 2024.</h4>
+    <h4>By Harshita C</h4>
+    <div id = "space"</div>
     </section>
-   
+  <footer>
+    <p>Harshita C, Info Aesthetics Fall MSDV 2024. </p>
+  </footer>
   </body>
 </html>
