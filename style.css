@@ -198,7 +198,34 @@ h4 {
     margin-right: auto;
 
 }
+
+#treedropdown {
+    background-color: #262626;
+    display: flex;
+    align-items: center;
+    gap: 10px; /* Add spacing between label and dropdown */
+    padding-top: 2px;; /* Add padding to the dropdown */
+    padding-bottom: 2px;; /* Add padding to the dropdown */
+    padding-left: 15px;; /* Add padding to the dropdown */
+    font-family: "kranto-normal", sans-serif;
+    color: #a3f59d; /* Set text color */
+    justify-content: center; /* Center align the content */
+    border: 2px solid #a3f59d; /* Border color */
+    margin-left: auto; /* Center horizontally */
+    margin-right: auto; /* Center horizontally */
+
+}
+#treedropdown select {
+    background-color: #262626;
+    font-size: 14px; /* Adjust font size */
+    padding: 5px 10px; /* Add padding to the dropdown */
+    border: 2px solid #a3f59d; /* Border color */
+    color: #a3f59d; /* Text color */
+    cursor: pointer; /* Change cursor to pointer on hover */
+    outline: none; /* Remove focus outline */
+}
 #ageDropdown {
+    background-color: #262626;
     display: flex;
     align-items: center;
     gap: 10px; /* Add spacing between label and dropdown */ 
@@ -208,19 +235,16 @@ h4 {
 }
 
 #ageDropdown select {
+    background-color: #262626;
     font-size: 14px; /* Adjust font size */
     padding: 5px 10px; /* Add padding to the dropdown */
     border: 2px solid #a3f59d; /* Border color */
-    border-radius: 4px; /* Rounded edges */
-    background-color: white; /* Background color */
     color: #a3f59d; /* Text color */
     cursor: pointer; /* Change cursor to pointer on hover */
     outline: none; /* Remove focus outline */
 }
 
-#ageDropdown select:focus {
-    border-color: #6bb87d; /* Change border color on focus */
-}
+
 p {
     font-family: "kranto-normal", sans-serif;
     font-weight: 400;

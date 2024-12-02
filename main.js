@@ -28,10 +28,10 @@ async function getData() {
 
 
 getData().then(data => {
-    // preWordTree(data);
+    preWordTree(data);
     // preqvq(data);
     // presun(data);
-    prechart3(data);
+    // prechart3(data);
 });
 
 
@@ -449,7 +449,7 @@ function preWordTree(data) {
         .map(d => d[0]);
 
     // Populate the dropdown menu
-    const dropdown = d3.select("#dropdown");
+    const dropdown = d3.select("#treedropdown");
     dropdown.selectAll("option").remove(); // Clear existing options
     topWords.forEach(word => {
         dropdown.append("option").text(word).attr("value", word);
@@ -540,7 +540,8 @@ function drawWordTree(data, fullData) {
         .attr("y1", d => d.source.x)
         .attr("x2", d => d.target.y)
         .attr("y2", d => d.target.x)
-        .attr("stroke", colours.stroke);
+        .attr("stroke", colours.stroke)
+        .style("stroke-opacity", 0.1);
 
     // Create nodes
     const nodes = svg.selectAll(".node")
