@@ -28,9 +28,9 @@ async function getData() {
 
 
 getData().then(data => {
-    preWordTree(data);
-    preqvq(data);
-    presun(data);
+    // preWordTree(data);
+    // preqvq(data);
+    // presun(data);
     prechart3(data);
 });
 
@@ -90,15 +90,10 @@ function prechart3(data)
 
 }
 
-//second x axis should be on top, with their labels on the top.
-//the max values on the y axis should remain the same the same no matter what, so it shoud be calculated for the max values in the beginning of the chart, and then as the slider data changes, the new bars are creating on that static x and y axis values.
-//the x and y axis lines and texts and tixks should all be coloured using colours.stroke and colours.text.
-//the slider should be styled better
-//the slider should be in between the two charts.
-//need a legend.
+
 
 function createBarChart(data) {
-    const width = 800;
+    const width = 1500;
     const height = 1000;
     const margin = { top: 20, right: 20, bottom: 50, left: 50 };
 
@@ -106,20 +101,14 @@ function createBarChart(data) {
     const topChartGroup1 = d3.select("#chart3svg0")
         .append("svg")
         .attr("width", width)
-        .attr("height", height/2)
+        .attr("height", height / 2)
         .attr("transform", `translate(${margin.left}, ${margin.top})`);
 
     const bottomChartGroup1 = d3.select("#chart3svg1")
         .append("svg")
         .attr("width", width)
-        .attr("height", height/2)
-        .attr("transform", `translate(${margin.left}, ${height / 2 + margin.top})`);
-
-
-  
-  
-
-   
+        .attr("height", height / 2)
+        .attr("transform", `translate(${margin.left}, ${margin.top * 2 + 20})`); // Adjust the position of the bottom chart group
 
     // Define scales
     const x = d3.scaleBand()
@@ -134,15 +123,13 @@ function createBarChart(data) {
 
     // Axes groups for both charts
     const xAxisGroupTop1 = topChartGroup1.append("g")
-        .attr("transform", `translate(0, ${height / 2 - margin.top - margin.bottom})`);
+        .attr("transform", `translate(0, ${height / 2 - margin.top - margin.bottom + 5})`);
 
     const yAxisGroupTop1 = topChartGroup1.append("g");
 
     const xAxisGroupBottom1 = bottomChartGroup1.append("g");
 
     const yAxisGroupBottom1 = bottomChartGroup1.append("g");
-
-
 
     // Collect all unique class_names for persistent x-axis labels
     const allClassNames = new Set(data.flatMap(dataset => dataset.map(d => d.class_name)));
@@ -172,17 +159,39 @@ function createBarChart(data) {
 
         // Update scales for both top and bottom charts
         x.domain(Array.from(allClassNames));
-        y.domain([0, d3.max(chartData, d => d.recommended)]);
-        y2.domain([0, d3.max(chartData, d => d.notRecommended)]);
+        const maxRecommended = d3.max(chartData, d => d.recommended);
+        const maxNotRecommended = d3.max(chartData, d => d.notRecommended);
+        const maxValue = Math.max(maxRecommended, maxNotRecommended);
+        y.domain([0, maxValue]);
+        y2.domain([0, maxValue]);
 
         // Update x-axis for both charts
-        xAxisGroupTop1.call(d3.axisBottom(x).tickSize(0)).selectAll("text").style("fill", colours.text);
-        xAxisGroupBottom1.call(d3.axisBottom(x).tickSize(0)).selectAll("text").style("fill", colours.text);
+        xAxisGroupTop1.call(d3.axisBottom(x))
+            .selectAll("text").style("fill", colours.text);
+        xAxisGroupTop1.select(".domain")  // Selects the axis line
+            .attr("stroke", colours.stroke)
+            .attr("stroke-width", 1);
+
+        xAxisGroupBottom1.call(d3.axisTop(x))
+            .selectAll("text")
+            .style("fill", colours.text)
+            .attr("y", 10); 
+        xAxisGroupBottom1.select(".domain")
+            .attr("stroke", colours.stroke)
+            .attr("stroke-width", 1);
 
         // Update y-axis for both charts
-        yAxisGroupTop1.call(d3.axisLeft(y)).selectAll("text").style("fill", colours.text);
-        yAxisGroupBottom1.call(d3.axisLeft(y2)).selectAll("text").style("fill", colours.text);
+        yAxisGroupTop1.call(d3.axisLeft(y))  // Add 5 ticks to the y-axis
+            .selectAll("text").style("fill", colours.text);
+        yAxisGroupTop1.select(".domain")
+            .attr("stroke", colours.stroke)
+            .attr("stroke-width", 1);
 
+        yAxisGroupBottom1.call(d3.axisLeft(y2))  // Add 5 ticks to the y2-axis
+            .selectAll("text").style("fill", colours.text);
+        yAxisGroupBottom1.select(".domain")
+            .attr("stroke", colours.stroke)
+            .attr("stroke-width", 1);
 
         // Bind data to bars for top chart 1
         const barsTop1 = topChartGroup1.selectAll(".bar-top")
@@ -191,7 +200,6 @@ function createBarChart(data) {
         const barsBottom1 = bottomChartGroup1.selectAll(".bar-bottom")
             .data(chartData, d => d.class_name);
 
-  
         // Enter new bars for top chart 1
         barsTop1.enter()
             .append("rect")
@@ -209,17 +217,14 @@ function createBarChart(data) {
             .attr("class", "bar-bottom")
             .merge(barsBottom1)
             .attr("x", d => x(d.class_name))
-            .attr("y", d => y2(0))
+            .attr("y", d => y2(0) + 20) // Adjust the y position of the bars to move them down
             .attr("width", x.bandwidth())
             .attr("height", d => y2(d.notRecommended) - y2(0))
             .attr("fill", colours.secondary);
 
-  
-
         // Exit old bars
         barsTop1.exit().remove();
         barsBottom1.exit().remove();
-
     }
 
     // Attach dropdown event
@@ -233,6 +238,154 @@ function createBarChart(data) {
     updateChart(11, 20); // Default to the first age group
 }
 
+
+// function createBarChart(data) {
+//     const width = 1500;
+//     const height = 1000;
+//     const margin = { top: 20, right: 20, bottom: 50, left: 50 };
+
+//     // Select existing SVG containers
+//     const topChartGroup1 = d3.select("#chart3svg0")
+//         .append("svg")
+//         .attr("width", width)
+//         .attr("height", height / 2)
+//         .attr("transform", `translate(${margin.left}, ${margin.top})`);
+
+//     const bottomChartGroup1 = d3.select("#chart3svg1")
+//         .append("svg")
+//         .attr("width", width)
+//         .attr("height", height / 2)
+//         .attr("transform", `translate(${margin.left}, ${margin.top * 2 + 20})`); // Keep this for bottom chart
+
+//     // Define scales
+//     const x = d3.scaleBand()
+//         .range([0, width - margin.left - margin.right])
+//         .padding(0.1);
+
+//     const y = d3.scaleLinear()
+//         .range([height / 2 - margin.top - margin.bottom, 0]); // Top chart (positive)
+
+//     const y2 = d3.scaleLinear()
+//         .range([0, height / 2 - margin.top - margin.bottom]); // Bottom chart (positive but below x-axis)
+
+//     // Axes groups for both charts
+//     const xAxisGroupTop1 = topChartGroup1.append("g")
+//         .attr("transform", `translate(0, ${height / 2 - margin.top - margin.bottom + 5})`);
+
+//     const yAxisGroupTop1 = topChartGroup1.append("g");
+
+//     const xAxisGroupBottom1 = bottomChartGroup1.append("g")
+//         .attr("transform", `translate(0, ${height / 2 - margin.top - margin.bottom + 5})`); // Move this axis to the bottom
+
+//     const yAxisGroupBottom1 = bottomChartGroup1.append("g");
+
+//     // Collect all unique class_names for persistent x-axis labels
+//     const allClassNames = new Set(data.flatMap(dataset => dataset.map(d => d.class_name)));
+
+//     // Update function to filter and redraw the bar chart for both charts
+//     function updateChart(minAge, maxAge) {
+//         // Filter data by age
+//         const filteredData = data.map(dataset =>
+//             dataset.filter(d => +d.age >= minAge && +d.age <= maxAge)
+//         );
+
+//         // Compute counts for recommended and not-recommended for each class_name
+//         const groupedData = {};
+//         allClassNames.forEach(className => {
+//             groupedData[className] = {
+//                 notRecommended: filteredData[0].filter(d => d.class_name === className).length,
+//                 recommended: filteredData[1].filter(d => d.class_name === className).length,
+//             };
+//         });
+
+//         // Transform grouped data into an array
+//         const chartData = Array.from(allClassNames).map(className => ({
+//             class_name: className,
+//             notRecommended: groupedData[className].notRecommended,
+//             recommended: groupedData[className].recommended,
+//         }));
+
+//         // Update scales for both top and bottom charts
+//         x.domain(Array.from(allClassNames));
+//         const maxRecommended = d3.max(chartData, d => d.recommended);
+//         const maxNotRecommended = d3.max(chartData, d => d.notRecommended);
+//         const maxValue = Math.max(maxRecommended, maxNotRecommended);
+//         y.domain([0, maxValue]);
+//         y2.domain([0, maxValue]);
+
+//         // Update x-axis for both charts
+//         xAxisGroupTop1.call(d3.axisBottom(x))
+//             .selectAll("text").style("fill", colours.text);
+//         xAxisGroupTop1.select(".domain")  // Selects the axis line
+//             .attr("stroke", colours.stroke)
+//             .attr("stroke-width", 1);
+
+//         // Swap positions: Update x-axis for the bottom chart (formerly top axis)
+//         xAxisGroupBottom1.call(d3.axisTop(x))
+//             .selectAll("text")
+//             .style("fill", colours.text)
+//             .attr("y", 10); // Adjust position of the tick text
+//         xAxisGroupBottom1.select(".domain")
+//             .attr("stroke", colours.stroke)
+//             .attr("stroke-width", 1);
+
+//         // Update y-axis for both charts
+//         yAxisGroupTop1.call(d3.axisLeft(y))  // Add 5 ticks to the y-axis
+//             .selectAll("text").style("fill", colours.text);
+//         yAxisGroupTop1.select(".domain")
+//             .attr("stroke", colours.stroke)
+//             .attr("stroke-width", 1);
+
+//         yAxisGroupBottom1.call(d3.axisLeft(y2))  // Add 5 ticks to the y2-axis
+//             .selectAll("text").style("fill", colours.text);
+//         yAxisGroupBottom1.select(".domain")
+//             .attr("stroke", colours.stroke)
+//             .attr("stroke-width", 1);
+
+//         // Bind data to bars for top chart 1
+//         const barsTop1 = topChartGroup1.selectAll(".bar-top")
+//             .data(chartData, d => d.class_name);
+
+//         const barsBottom1 = bottomChartGroup1.selectAll(".bar-bottom")
+//             .data(chartData, d => d.class_name);
+
+//         // Enter new bars for top chart 1
+//         barsTop1.enter()
+//             .append("rect")
+//             .attr("class", "bar-top")
+//             .merge(barsTop1)
+//             .attr("x", d => x(d.class_name))
+//             .attr("y", d => y(d.recommended))
+//             .attr("width", x.bandwidth())
+//             .attr("height", d => y(0) - y(d.recommended))
+//             .attr("fill", colours.primary);
+
+//         // Enter new bars for bottom chart 1
+//         barsBottom1.enter()
+//             .append("rect")
+//             .attr("class", "bar-bottom")
+//             .merge(barsBottom1)
+//             .attr("x", d => x(d.class_name))
+//             .attr("y", d => y2(0) + 20) // Adjust the y position of the bars to move them down
+//             .attr("width", x.bandwidth())
+//             .attr("height", d => y2(d.notRecommended) - y2(0))
+//             .attr("fill", colours.secondary);
+
+//         // Exit old bars
+//         barsTop1.exit().remove();
+//         barsBottom1.exit().remove();
+//     }
+
+//     // Attach dropdown event
+//     const dropdown = d3.select("#ageGroupSelect");
+//     dropdown.on("change", function () {
+//         const [minAge, maxAge] = this.value.split("-").map(Number);
+//         updateChart(minAge, maxAge);
+//     });
+
+//     // Initial render
+//     updateChart(11, 20); // Default to the first age group
+// }
 
 
 
