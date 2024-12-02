@@ -49,6 +49,11 @@ h3 {
     color: #fb6d51;
     text-align: center;
 }
+
+a {
+    color: #a3f59d;
+    text-decoration: underline;
+}
 h4 {
     font-size: 16px;;
     margin-bottom: 10px;
@@ -108,16 +113,7 @@ h4 {
 #space{
     margin-top: 200px;
 }
-#toggleContainer {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
 
-#toggleContainer span {
-    font-size: 14px;
-    color: #333;
-}
 
 #toggleView {
     appearance: none;
@@ -152,20 +148,39 @@ h4 {
 }
 
 #chart2-container {
-    position: relative;
     display: flex;
-    justify-content: center;
-    align-items: center;
+    justify-content: space-between;
+    align-items: flex-start;
     margin-left: auto;
     margin-right: auto;
 }
 
-
-#legend2{
-    
-    margin-top: 100px;
+#legend2 {
+    width: 300px; /* Ensure the review box is responsive */
+    height: 900px;
     background-color: rgba(255, 255, 255, 0.229);
+    padding: 20px; /* Add padding to the legend */
+    margin-top: 50px;  /* Adjust margin as needed */
+    margin-left: 120px; 
 }
+
+#legend2 text {
+    font-size: 20px;
+    font-weight: bold;
+}
+
+#legend2 foreignObject {
+    margin-top: 10px; /* Space between the legend title and toggle container */
+}
+
+#toggleContainer {
+    display: flex;
+    align-items: center;
+    margin-top: 10px;
+    justify-content: space-between;
+    font-size: 14px;
+}
+
 .tooltip {
     position: absolute;
     background: rgba(0, 0, 0, 0.7);

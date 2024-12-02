@@ -28,8 +28,8 @@ async function getData() {
 
 
 getData().then(data => {
-    preWordTree(data);
-    // preqvq(data);
+    // preWordTree(data);
+    preqvq(data);
     // presun(data);
     // prechart3(data);
 });
@@ -829,17 +829,14 @@ function drawSunburst(data) {
 
 
 
-
 function create_heatmap(data) {
-    
-
-    const width = 1500;
+    const width = 1300;
     const height = 1000;
     const margin = { top: 50, right: 20, bottom: 50, left: 150 };
 
     const svgContainer = d3.select("#chart2svg");
     const color = d3.scaleSequential()
-        .domain([0, 8000]) // Set the domain for counts
+        .domain([0, 8000]) // Set the domain for counts (temporary before dynamic calculation)
         .interpolator(d3.interpolate(colours.primary, colours.secondary));
 
     let currentView = "macro"; // Default view
@@ -870,8 +867,6 @@ function create_heatmap(data) {
                 .sort((a, b) => a.sentiment_score - b.sentiment_score)
                 .map(d => d.adjective);
 
-            
-
             // Aggregate data as in original function
             const aggregatedData = d3.rollup(
                 data,
@@ -886,11 +881,7 @@ function create_heatmap(data) {
                     flattenedData.push({ rating, adjective, count });
                 }
             }
-        } 
-        
-        else {
-            console.log("we're here")
-            console.log(data)
+        } else {
             // MICRO VIEW: Group adjectives by sentiment bins
             const sentimentBins = d3.range(-3, 6); // Sentiment bins -3 to +5
 
@@ -911,6 +902,10 @@ function create_heatmap(data) {
 
             yDomain = sentimentBins.map(bin => `Sentiment ${bin}`);
         }
+
+        // Calculate min and max values dynamically from the flattened data
+        const minValue = d3.min(flattenedData, d => d.count);
+        const maxValue = d3.max(flattenedData, d => d.count);
 
         // Define scales
         const x = d3.scaleBand()
@@ -935,16 +930,12 @@ function create_heatmap(data) {
             .attr("fill", d => color(d.count))
             .on("mouseover", function (event, d) {
                 if (view === "macro") {
-                    // Find the original data item associated with the adjective
                     const dataItem = data.find(item => item.adjective === d.adjective);
-
-                    // Highlight the hovered word across all ratings
                     svgContainer.selectAll("rect")
                         .transition()
                         .duration(200)
                         .style("opacity", other => (other.adjective === d.adjective ? 1 : 0.1));
 
-                    // Show tooltip
                     tooltip.transition().duration(200).style("opacity", 1);
                     tooltip.html(`<strong>${"Word: " + d.adjective + ", Sentiment Score: " + (dataItem ? dataItem.sentiment_score : 'N/A') + ", Rating: " + d.rating}</strong>`)
                         .style("left", (event.pageX + 20) + "px")
@@ -957,120 +948,110 @@ function create_heatmap(data) {
             })
             .on("mouseout", function () {
                 if (view === "macro") {
-                    // Reset the opacity of all rectangles
                     svgContainer.selectAll("rect")
                         .transition()
                         .duration(200)
                         .style("opacity", 1);
-
-                    // Hide tooltip
                     tooltip.transition().duration(200).style("opacity", 0);
                 }
             });
 
-        // Add X-axis
-        svgContainer.append("g")
-            .attr("transform", `translate(0,${margin.top})`)
-            .call(d3.axisTop(x).ticks(5))
-            .selectAll("text")
-            .style("font-size", "14px")
-            .style("stroke", colours.stroke) // Apply stroke to the text
-            .style("text-anchor", "middle")
-            .style("font-family", "fractul-variable")
-            .style("font-weight", "400");
+        // Add X-axis and Y-axis (same as your current code)
 
-        // Apply stroke to the axis line (path)
-        svgContainer.selectAll(".domain")
-            .style("stroke", colours.stroke); // Apply stroke color to the X-axis line
-
-
-        svgContainer.append("text") // X-axis label
-            .attr("x", (width - margin.left - margin.right) / 2 + margin.left) // Centered horizontally
-            .attr("y", margin.top - 30) // Position above the axis
-            .style("text-anchor", "middle")
-            .style("font-size", "18px")
-            .style("font-family", "kranto-normal, sans-serif")
-            .style("font-weight", "600")
-            .style("fill", colours.stroke)
-            .text("Rating for the review that the adjective was used in.");
-
-        // Add Y-axis
-        const yAxis = svgContainer.append("g")
-            .attr("transform", `translate(${margin.left},0)`);
-
-        // Render the Y-axis differently based on the view
-        if (view === "macro") {
-            // In macro view, do not render Y-axis ticks
-            yAxis.call(d3.axisLeft(y).tickFormat(() => "")); // Remove all labels
-
-            // Apply stroke to the axis line (path), make it thinner or remove it entirely
-            yAxis.selectAll(".domain")
-                .style("stroke", "none") // Remove the stroke completely
-                .style("stroke-width", 0); // Set stroke width to 0 (making it effectively invisible)
-        } 
-        else {
-            yAxis.call(d3.axisLeft(y));
-            // Apply stroke to the axis line (path)
-            yAxis.selectAll(".domain")
-                .style("stroke", colours.stroke); // Apply stroke color to the Y-axis line
-        }
-
-        // Style the axis ticks (if present)
-        yAxis.selectAll("text")
-            .style("font-size", "16px")
-            .style("fill", colours.text) 
-            .style("font-family", "fractul-variable")
-            .style("font-weight", "400");
-
-        // Add Y-axis label
-        svgContainer.append("text")
-            .attr("x", -((height - margin.top - margin.bottom) / 2) - margin.top) // Centered vertically
-            .attr("y", margin.left - 40) // Position to the left of the axis
-            .attr("transform", "rotate(-90)") // Rotate for vertical text
-            .style("text-anchor", "middle")
-            .style("font-size", "18px")
-            .style("font-family", "kranto-normal, sans-serif")
-            .style("font-weight", "600")
-            .style("fill", colours.stroke)
-            .text(view === "macro" ? "Adjectives (hover over the chart to see the names)" : "");
-
-        svgContainer.selectAll(".tick line") // For X-axis
-            .style("stroke", colours.stroke);
-        
-        yAxis.selectAll(".tick line") // For Y-axis
-            .style("stroke", colours.stroke);
+        // Pass the minValue and maxValue to the legend
+        createLegend(width, color, minValue, maxValue);
     }
 
     // Initialize with macro view
-    
+    drawChart("macro");
 
     // Add button listener for toggling views
     d3.select("#toggleView").on("click", () => {
         currentView = currentView === "macro" ? "micro" : "macro";
         drawChart(currentView);
     });
-    drawChart("macro")
-    createLegend(width, color);
 }
 
-
-function createLegend(width, color) {
-    // Define the width and height of the legend rectangle
-    const legendWidth = 20;  // Narrow width for the vertical legend
-    const legendHeight = 300; // Adjust height as needed
-    const margin = { top: 20, right: 20, bottom: 50, left: 50 };
-
+function createLegend(width, color, minValue, maxValue) {
+    // Create margins
+    const margin = { top: 20, right: 20, bottom: 20, left: 20 };
+    
     // Create a new container for the legend
     const legendContainer = d3.select("#legend2"); 
 
-    // Draw the white rectangle     
-    legendContainer.append("rect")
-        .attr("x", width + 20)  // Position it next to your chart
-        .attr("y", margin.top)  // Align with the top of your chart
-        .attr("width", legendWidth)
-        .attr("height", legendHeight)
-        .style("fill", "white");
+    // Create a gradient rectangle
+    const gradientWidth = 60; // Width of the gradient rectangle
+    const gradientHeight = 400; // Height of the gradient rectangle
+    const gradientX = 50; // X position of the gradient
+    const gradientY = 80; // Y position of the gradient
+    
+    // Append a group for the gradient and the annotations
+    const gradientGroup = legendContainer.append("g")
+        .attr("transform", `translate(${gradientX}, ${gradientY})`);
+
+    // Create the linear gradient
+    const gradient = gradientGroup.append("defs")
+        .append("linearGradient")
+        .attr("id", "gradient")
+        .attr("x1", "0%")
+        .attr("y1", "0%")
+        .attr("x2", "0%")
+        .attr("y2", "100%");
+
+    // Define gradient stops based on the color scale
+    gradient.append("stop")
+        .attr("offset", "0%")
+        .attr("stop-color", color(0)); // Color at the lower bound of the scale
+    gradient.append("stop")
+        .attr("offset", "100%")
+        .attr("stop-color", color(8000)); // Color at the upper bound of the scale
+
+    // Append a rectangle with the gradient fill
+    gradientGroup.append("rect")
+        .attr("width", gradientWidth)
+        .attr("height", gradientHeight)
+        .style("fill", "url(#gradient)");
+
+    // Add text annotations on the right side of the gradient
+    const textGroup = legendContainer.append("g")
+        .attr("transform", `translate(${gradientX + gradientWidth + 10}, ${gradientY})`);
+        
+
+        textGroup.append("text")
+            .attr("x", 0)
+            .attr("y", 0)
+            .text(minValue)
+            .style("font-size", "14px")
+            .style("font-weight", "bold");
+
+        textGroup.append("text")
+            .attr("x", 0)
+            .attr("y", gradientHeight / 2)
+            .text((minValue + maxValue) / 2)
+            .style("font-size", "14px")
+            .style("font-weight", "bold");
+
+        textGroup.append("text")
+            .attr("x", 0)
+            .attr("y", gradientHeight)
+            .text(maxValue)
+            .style("font-size", "14px")
+            .style("font-weight", "bold");
+    
+    // Move the toggleContainer under the legend
+    legendContainer.append("div")
+        .attr("id", "toggleContainer")
+        .style("align-items", "center")
+        .style("margin-top", "100px")
+        .html(`
+            <span>Words</span>
+            <input type="checkbox" id="toggleView">
+            <span>Sentiment</span>
+        `);
 }
+
+
+
 
 
 
